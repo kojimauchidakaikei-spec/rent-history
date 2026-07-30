@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#17324d" />
+  <link rel="manifest" href="manifest.json" />
+  <title>賃料履歴</title>
+  <style>
+    :root{
+      --navy:#17324d; --navy2:#244b70; --bg:#f4f6f8; --card:#fff;
+      --line:#d9e0e6; --text:#1f2933; --muted:#687582; --danger:#b42318;
+      --ok:#157347; --shadow:0 5px 18px rgba(27,50,73,.08);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif}
+    header{position:sticky;top:0;z-index:20;background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;padding:14px 16px 12px;box-shadow:0 2px 12px rgba(0,0,0,.14)}
+    .head-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    h1{font-size:21px;margin:0;font-weight:800}
+    .version{font-size:11px;opacity:.9;border:1px solid rgba(255,255,255,.45);padding:3px 7px;border-radius:999px}
+    main{max-width:980px;margin:0 auto;padding:14px 12px 90px}
+    .tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+    .tab{border:0;border-radius:12px;padding:11px;background:#dfe7ee;color:#28435b;font-weight:700}
+    .tab.active{background:var(--navy);color:#fff}
+    .panel{display:none}.panel.active{display:block}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow)}
+    .card h2{font-size:17px;margin:0 0 12px}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .grid .full{grid-column:1/-1}
+    label{font-size:12px;color:var(--muted);font-weight:700;display:block;margin-bottom:5px}
+    input,select,textarea{width:100%;font-size:16px;padding:10px 11px;border:1px solid #c9d2da;border-radius:10px;background:#fff;color:var(--text)}
+    textarea{min-height:90px;resize:vertical}
+    .readonly{background:#edf2f6}
+    .btnrow{display:flex;gap:8px;flex-wrap:wrap}
+    button{font:inherit;cursor:pointer}
+    .primary,.secondary,.danger,.ghost{border:0;border-radius:11px;padding:11px 14px;font-weight:800}
+    .primary{background:var(--navy);color:#fff}
+    .secondary{background:#e4edf5;color:#17324d}
+    .danger{background:#fee4e2;color:var(--danger)}
+    .ghost{background:#eef1f4;color:#465460}
+    .search-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+    .list{display:grid;gap:10px}
+    .item{border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}
+    .item-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+    .owner{font-weight:800;font-size:17px}
+    .building{font-weight:700;color:#334b60;margin-top:2px}
+    .rent{font-weight:900;font-size:18px;color:var(--navy)}
+    .meta{font-size:13px;color:#596875;margin-top:7px;line-height:1.65}
+    .memo{margin-top:8px;padding:8px 10px;background:#f4f7f9;border-radius:9px;font-size:13px;white-space:pre-wrap}
+    .small{font-size:12px;color:var(--muted)}
+    .badge{display:inline-block;background:#e8f1f7;color:#244b70;border-radius:999px;padding:3px 8px;font-size:11px;font-weight:800;margin-right:5px}
+    .empty{text-align:center;padding:28px 12px;color:var(--muted)}
+    .result-count{font-size:13px;color:var(--muted);margin:4px 0 10px}
+    .fab{position:fixed;right:18px;bottom:22px;width:58px;height:58px;border-radius:50%;border:0;background:var(--navy);color:#fff;font-size:29px;box-shadow:0 8px 22px rgba(23,50,77,.35);z-index:30}
+    dialog{width:min(92vw,560px);border:0;border-radius:18px;padding:0;box-shadow:0 18px 60px rgba(0,0,0,.3)}
+    dialog::backdrop{background:rgba(12,22,32,.46)}
+    .dialog-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:var(--navy);color:#fff}
+    .dialog-head h3{margin:0;font-size:17px}
+    .close{border:0;background:transparent;color:#fff;font-size:25px}
+    .dialog-body{padding:14px;max-height:72vh;overflow:auto}
+    .dialog-actions{padding:12px 14px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end}
+    .io{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    @media (max-width:700px){
+      .grid,.search-grid{grid-template-columns:1fr 1fr}
+      .search-grid .wide{grid-column:1/-1}
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="head-row">
+    <h1>賃料履歴</h1>
+    <span class="version">v1.0.0</span>
+  </div>
+</header>
+
+<main>
+  <div class="tabs">
+    <button class="tab active" data-tab="listPanel">一覧・検索</button>
+    <button class="tab" data-tab="addPanel">新規登録</button>
+  </div>
+
+  <section id="listPanel" class="panel active">
+    <div class="card">
+      <h2>複数条件検索</h2>
+      <div class="search-grid">
+        <div class="wide">
+          <label>キーワード</label>
+          <input id="q" placeholder="お客さん・建物・駅・路線・メモ" />
+        </div>
+        <div>
+          <label>構造</label>
+          <select id="fStructure">
+            <option value="">すべて</option>
+            <option>木造</option><option>軽量鉄骨造</option><option>鉄骨造</option>
+            <option>RC造</option><option>SRC造</option><option>その他</option>
+          </select>
+        </div>
+        <div>
+          <label>間取り</label>
+          <input id="fLayout" placeholder="例：2DK" />
+        </div>
+        <div>
+          <label>徒歩（分以内）</label>
+          <input id="fWalkMax" type="number" min="0" />
+        </div>
+        <div>
+          <label>築年数（年以上）</label>
+          <input id="fAgeMin" type="number" min="0" />
+        </div>
+        <div>
+          <label>築年数（年以下）</label>
+          <input id="fAgeMax" type="number" min="0" />
+        </div>
+        <div>
+          <label>家賃（円以上）</label>
+          <input id="fRentMin" type="number" min="0" />
+        </div>
+        <div>
+          <label>家賃（円以下）</label>
+          <input id="fRentMax" type="number" min="0" />
+        </div>
+        <div>
+          <label>坪単価（円以上）</label>
+          <input id="fTsuboMin" type="number" min="0" />
+        </div>
+        <div>
+          <label>値上げ額（円以上）</label>
+          <input id="fRaiseMin" type="number" />
+        </div>
+        <div>
+          <label>並び順</label>
+          <select id="sortBy">
+            <option value="new">更新が新しい順</option>
+            <option value="rentDesc">家賃が高い順</option>
+            <option value="tsuboDesc">坪単価が高い順</option>
+            <option value="raiseDesc">値上げ額が大きい順</option>
+            <option value="walkAsc">駅徒歩が近い順</option>
+          </select>
+        </div>
+      </div>
+      <div class="btnrow" style="margin-top:10px">
+        <button class="secondary" id="clearFilters">条件をクリア</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="item-top">
+        <h2 style="margin:0">登録物件</h2>
+        <button class="ghost" id="openIo">データ管理</button>
+      </div>
+      <div id="resultCount" class="result-count"></div>
+      <div id="list" class="list"></div>
+    </div>
+  </section>
+
+  <section id="addPanel" class="panel">
+    <form id="rentForm">
+      <input type="hidden" id="recordId" />
+      <div class="card">
+        <h2>お客さん・建物</h2>
+        <div class="grid">
+          <div>
+            <label>お客さん名（苗字など）*</label>
+            <input id="owner" required />
+          </div>
+          <div>
+            <label>建物名</label>
+            <input id="building" />
+          </div>
+          <div>
+            <label>路線</label>
+            <input id="line" placeholder="例：東急東横線" />
+          </div>
+          <div>
+            <label>最寄駅</label>
+            <input id="station" placeholder="例：学芸大学" />
+          </div>
+          <div>
+            <label>徒歩（分）</label>
+            <input id="walk" type="number" min="0" />
+          </div>
+          <div>
+            <label>築年月</label>
+            <input id="built" placeholder="例：昭和63年4月／1988年4月" />
+          </div>
+          <div>
+            <label>構造</label>
+            <select id="structure">
+              <option value="">選択</option>
+              <option>木造</option><option>軽量鉄骨造</option><option>鉄骨造</option>
+              <option>RC造</option><option>SRC造</option><option>その他</option>
+            </select>
+          </div>
+          <div>
+            <label>築年数（検索用）</label>
+            <input id="age" type="number" min="0" placeholder="例：38" />
+          </div>
+          <div>
+            <label>間取り</label>
+            <input id="layout" placeholder="例：2DK" />
+          </div>
+          <div>
+            <label>面積（㎡）*</label>
+            <input id="sqm" type="number" min="0" step="0.01" required />
+          </div>
+          <div>
+            <label>面積（坪）</label>
+            <input id="tsubo" class="readonly" readonly />
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>賃料・値上げ</h2>
+        <div class="grid">
+          <div>
+            <label>改定前家賃（円）</label>
+            <input id="oldRent" type="number" min="0" />
+          </div>
+          <div>
+            <label>現在家賃（円）*</label>
+            <input id="rent" type="number" min="0" required />
+          </div>
+          <div>
+            <label>現在の坪単価（円）</label>
+            <input id="rentPerTsubo" class="readonly" readonly />
+          </div>
+          <div>
+            <label>値上げ額（円）</label>
+            <input id="raiseAmount" class="readonly" readonly />
+          </div>
+          <div>
+            <label>坪当たり値上げ額（円）</label>
+            <input id="raisePerTsubo" class="readonly" readonly />
+          </div>
+          <div>
+            <label>値上げ率（％）</label>
+            <input id="raiseRate" class="readonly" readonly />
+          </div>
+          <div>
+            <label>改定年月</label>
+            <input id="revisionMonth" type="month" />
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>メモ</h2>
+        <textarea id="memo" placeholder="例：更新料なし、ペット可、2025年に室内リフォーム済み、次回更新時に再交渉予定"></textarea>
+      </div>
+
+      <div class="btnrow">
+        <button type="submit" class="primary">保存</button>
+        <button type="button" class="secondary" id="resetForm">入力をクリア</button>
+      </div>
+    </form>
+  </section>
+</main>
+
+<button class="fab" id="fab" aria-label="新規登録">＋</button>
+
+<dialog id="ioDialog">
+  <div class="dialog-head">
+    <h3>データ管理</h3>
+    <button class="close" id="closeIo">×</button>
+  </div>
+  <div class="dialog-body">
+    <p class="small">機種変更やブラウザのデータ削除に備えて、定期的にバックアップしてください。</p>
+    <div class="io">
+      <button class="secondary" id="exportBtn">バックアップを書き出す</button>
+      <button class="secondary" id="importBtn">バックアップを読み込む</button>
+    </div>
+    <input type="file" id="importFile" accept=".json,application/json" hidden />
+    <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
+    <button class="danger" id="deleteAll">全データ削除</button>
+  </div>
+</dialog>
+
+<dialog id="detailDialog">
+  <div class="dialog-head">
+    <h3>物件詳細</h3>
+    <button class="close" id="closeDetail">×</button>
+  </div>
+  <div class="dialog-body" id="detailBody"></div>
+  <div class="dialog-actions">
+    <button class="danger" id="deleteOne">削除</button>
+    <button class="primary" id="editOne">編集</button>
+  </div>
+</dialog>
+
+<script>
+const VERSION = "1.0.0";
+const STORAGE_KEY = "rentHistoryRecords_v1";
+let records = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+let selectedId = null;
+
+const $ = id => document.getElementById(id);
+const money = n => Number(n || 0).toLocaleString("ja-JP");
+const esc = s => String(s ?? "").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+
+function saveRecords(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+}
+function calc(){
+  const sqm = Number($("sqm").value || 0);
+  const tsubo = sqm / 3.305785;
+  const oldRent = Number($("oldRent").value || 0);
+  const rent = Number($("rent").value || 0);
+  const raise = rent - oldRent;
+  $("tsubo").value = tsubo ? tsubo.toFixed(2) : "";
+  $("rentPerTsubo").value = tsubo && rent ? Math.round(rent / tsubo) : "";
+  $("raiseAmount").value = oldRent && rent ? raise : "";
+  $("raisePerTsubo").value = oldRent && rent && tsubo ? Math.round(raise / tsubo) : "";
+  $("raiseRate").value = oldRent && rent ? ((raise / oldRent) * 100).toFixed(1) : "";
+}
+["sqm","oldRent","rent"].forEach(id => $(id).addEventListener("input", calc));
+
+function switchTab(id){
+  document.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b.dataset.tab === id));
+  document.querySelectorAll(".panel").forEach(p => p.classList.toggle("active", p.id === id));
+  $("fab").style.display = id === "listPanel" ? "block" : "none";
+  if(id === "addPanel") window.scrollTo({top:0,behavior:"smooth"});
+}
+document.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => switchTab(b.dataset.tab)));
+$("fab").addEventListener("click", () => { resetForm(); switchTab("addPanel"); });
+
+function formData(){
+  return {
+    id: $("recordId").value || crypto.randomUUID(),
+    owner: $("owner").value.trim(),
+    building: $("building").value.trim(),
+    line: $("line").value.trim(),
+    station: $("station").value.trim(),
+    walk: Number($("walk").value || 0),
+    built: $("built").value.trim(),
+    age: Number($("age").value || 0),
+    structure: $("structure").value,
+    layout: $("layout").value.trim(),
+    sqm: Number($("sqm").value || 0),
+    tsubo: Number($("tsubo").value || 0),
+    oldRent: Number($("oldRent").value || 0),
+    rent: Number($("rent").value || 0),
+    rentPerTsubo: Number($("rentPerTsubo").value || 0),
+    raiseAmount: Number($("raiseAmount").value || 0),
+    raisePerTsubo: Number($("raisePerTsubo").value || 0),
+    raiseRate: Number($("raiseRate").value || 0),
+    revisionMonth: $("revisionMonth").value,
+    memo: $("memo").value.trim(),
+    updatedAt: new Date().toISOString()
+  };
+}
+$("rentForm").addEventListener("submit", e => {
+  e.preventDefault();
+  calc();
+  const data = formData();
+  const idx = records.findIndex(r => r.id === data.id);
+  if(idx >= 0) records[idx] = data; else records.unshift(data);
+  saveRecords();
+  render();
+  resetForm();
+  switchTab("listPanel");
+  alert("保存しました");
+});
+
+function resetForm(){
+  $("rentForm").reset();
+  $("recordId").value = "";
+  ["tsubo","rentPerTsubo","raiseAmount","raisePerTsubo","raiseRate"].forEach(id => $(id).value = "");
+  $("revisionMonth").value = new Date().toISOString().slice(0,7);
+}
+$("resetForm").addEventListener("click", resetForm);
+
+const filterIds = ["q","fStructure","fLayout","fWalkMax","fAgeMin","fAgeMax","fRentMin","fRentMax","fTsuboMin","fRaiseMin","sortBy"];
+filterIds.forEach(id => $(id).addEventListener("input", render));
+filterIds.forEach(id => $(id).addEventListener("change", render));
+
+function filteredRecords(){
+  const q = $("q").value.trim().toLowerCase();
+  const structure = $("fStructure").value;
+  const layout = $("fLayout").value.trim().toLowerCase();
+  const walkMax = Number($("fWalkMax").value || 0);
+  const ageMin = Number($("fAgeMin").value || 0);
+  const ageMax = Number($("fAgeMax").value || 0);
+  const rentMin = Number($("fRentMin").value || 0);
+  const rentMax = Number($("fRentMax").value || 0);
+  const tsuboMin = Number($("fTsuboMin").value || 0);
+  const raiseMinRaw = $("fRaiseMin").value;
+  const raiseMin = raiseMinRaw === "" ? null : Number(raiseMinRaw);
+
+  let arr = records.filter(r => {
+    const text = [r.owner,r.building,r.line,r.station,r.structure,r.layout,r.memo,r.built].join(" ").toLowerCase();
+    return (!q || text.includes(q))
+      && (!structure || r.structure === structure)
+      && (!layout || (r.layout || "").toLowerCase().includes(layout))
+      && (!walkMax || r.walk <= walkMax)
+      && (!ageMin || r.age >= ageMin)
+      && (!ageMax || r.age <= ageMax)
+      && (!rentMin || r.rent >= rentMin)
+      && (!rentMax || r.rent <= rentMax)
+      && (!tsuboMin || r.rentPerTsubo >= tsuboMin)
+      && (raiseMin === null || r.raiseAmount >= raiseMin);
+  });
+
+  const sort = $("sortBy").value;
+  arr.sort((a,b) => {
+    if(sort === "rentDesc") return b.rent - a.rent;
+    if(sort === "tsuboDesc") return b.rentPerTsubo - a.rentPerTsubo;
+    if(sort === "raiseDesc") return b.raiseAmount - a.raiseAmount;
+    if(sort === "walkAsc") return a.walk - b.walk;
+    return new Date(b.updatedAt) - new Date(a.updatedAt);
+  });
+  return arr;
+}
+
+function render(){
+  const arr = filteredRecords();
+  $("resultCount").textContent = `${arr.length}件表示 / 全${records.length}件`;
+  if(!arr.length){
+    $("list").innerHTML = `<div class="empty">該当する物件がありません</div>`;
+    return;
+  }
+  $("list").innerHTML = arr.map(r => `
+    <div class="item" onclick="openDetail('${r.id}')">
+      <div class="item-top">
+        <div>
+          <div class="owner">${esc(r.owner)}</div>
+          <div class="building">${esc(r.building || "建物名未入力")}</div>
+        </div>
+        <div class="rent">${money(r.rent)}円</div>
+      </div>
+      <div class="meta">
+        ${r.line || r.station ? `<span class="badge">${esc([r.line,r.station].filter(Boolean).join(" "))}${r.walk ? ` 徒歩${r.walk}分` : ""}</span>` : ""}
+        ${r.structure ? `<span class="badge">${esc(r.structure)}</span>` : ""}
+        ${r.layout ? `<span class="badge">${esc(r.layout)}</span>` : ""}
+        <br>
+        ${r.sqm ? `${r.sqm}㎡（${r.tsubo.toFixed(2)}坪）` : ""}
+        ${r.rentPerTsubo ? `・坪単価 ${money(r.rentPerTsubo)}円` : ""}
+        ${r.raiseAmount ? `・値上げ +${money(r.raiseAmount)}円（坪 +${money(r.raisePerTsubo)}円）` : ""}
+      </div>
+      ${r.memo ? `<div class="memo">${esc(r.memo)}</div>` : ""}
+    </div>
+  `).join("");
+}
+$("clearFilters").addEventListener("click", () => {
+  ["q","fStructure","fLayout","fWalkMax","fAgeMin","fAgeMax","fRentMin","fRentMax","fTsuboMin","fRaiseMin"].forEach(id => $(id).value = "");
+  $("sortBy").value = "new";
+  render();
+});
+
+window.openDetail = function(id){
+  selectedId = id;
+  const r = records.find(x => x.id === id);
+  if(!r) return;
+  $("detailBody").innerHTML = `
+    <div class="owner">${esc(r.owner)}　${esc(r.building || "")}</div>
+    <div class="meta" style="margin-top:12px">
+      路線・駅：${esc([r.line,r.station].filter(Boolean).join(" ") || "未入力")} ${r.walk ? `（徒歩${r.walk}分）` : ""}<br>
+      築年月：${esc(r.built || "未入力")} ${r.age ? `（築${r.age}年）` : ""}<br>
+      構造：${esc(r.structure || "未入力")}<br>
+      間取り：${esc(r.layout || "未入力")}<br>
+      面積：${r.sqm ? `${r.sqm}㎡（${r.tsubo.toFixed(2)}坪）` : "未入力"}<br><br>
+      改定前家賃：${r.oldRent ? `${money(r.oldRent)}円` : "未入力"}<br>
+      現在家賃：${money(r.rent)}円<br>
+      坪単価：${r.rentPerTsubo ? `${money(r.rentPerTsubo)}円` : "未計算"}<br>
+      値上げ額：${r.raiseAmount ? `${r.raiseAmount>0?"+":""}${money(r.raiseAmount)}円` : "なし／未入力"}<br>
+      坪当たり値上げ額：${r.raisePerTsubo ? `${r.raisePerTsubo>0?"+":""}${money(r.raisePerTsubo)}円` : "なし／未入力"}<br>
+      値上げ率：${r.raiseRate ? `${r.raiseRate}%` : "なし／未入力"}<br>
+      改定年月：${esc(r.revisionMonth || "未入力")}
+    </div>
+    ${r.memo ? `<div class="memo" style="margin-top:14px">${esc(r.memo)}</div>` : ""}
+  `;
+  $("detailDialog").showModal();
+}
+$("closeDetail").addEventListener("click", () => $("detailDialog").close());
+$("editOne").addEventListener("click", () => {
+  const r = records.find(x => x.id === selectedId);
+  if(!r) return;
+  Object.entries(r).forEach(([k,v]) => { if($(k)) $(k).value = v ?? ""; });
+  $("detailDialog").close();
+  switchTab("addPanel");
+  calc();
+});
+$("deleteOne").addEventListener("click", () => {
+  if(!confirm("この物件を削除しますか？")) return;
+  records = records.filter(r => r.id !== selectedId);
+  saveRecords(); render(); $("detailDialog").close();
+});
+
+$("openIo").addEventListener("click", () => $("ioDialog").showModal());
+$("closeIo").addEventListener("click", () => $("ioDialog").close());
+$("exportBtn").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify({version:VERSION, exportedAt:new Date().toISOString(), records}, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `賃料履歴バックアップ_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+$("importBtn").addEventListener("click", () => $("importFile").click());
+$("importFile").addEventListener("change", async e => {
+  const file = e.target.files[0]; if(!file) return;
+  try{
+    const obj = JSON.parse(await file.text());
+    const incoming = Array.isArray(obj) ? obj : obj.records;
+    if(!Array.isArray(incoming)) throw new Error();
+    if(!confirm(`${incoming.length}件のデータで現在の内容を置き換えますか？`)) return;
+    records = incoming; saveRecords(); render(); $("ioDialog").close();
+  }catch{ alert("読み込めないファイルです"); }
+  e.target.value = "";
+});
+$("deleteAll").addEventListener("click", () => {
+  if(!confirm("全データを削除します。元に戻せません。")) return;
+  records = []; saveRecords(); render(); $("ioDialog").close();
+});
+
+resetForm();
+render();
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
+</script>
+</body>
+</html>
