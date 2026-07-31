@@ -63,7 +63,7 @@ dialog::backdrop{background:rgba(10,20,30,.48)}.dialog-head{display:flex;justify
 </style>
 </head>
 <body>
-<header><div class="header-row"><h1>賃料履歴</h1><button class="version" id="versionBtn">v2.1.0</button></div></header>
+<header><div class="header-row"><h1>賃料履歴</h1><button class="version" id="versionBtn">v2.1.1</button></div></header>
 <main>
 <div class="tabs">
  <button class="tab active" data-tab="listPanel">一覧</button>
@@ -159,6 +159,7 @@ dialog::backdrop{background:rgba(10,20,30,.48)}.dialog-head{display:flex;justify
 
 <dialog id="detailDialog"><div class="dialog-head"><h3>物件詳細</h3><button class="close" id="closeDetail">×</button></div><div class="dialog-body" id="detailBody"></div><div class="dialog-actions"><button class="secondary" id="cloneOne">別パターン追加</button><button class="danger" id="deleteOne">削除</button><button class="primary" id="editOne">編集</button></div></dialog>
 <dialog id="versionDialog"><div class="dialog-head"><h3>アップデート履歴</h3><button class="close" id="closeVersion">×</button></div><div class="dialog-body">
+ <div class="update"><strong>v2.1.1</strong>iPhone Safariで編集・別パターン追加・新規登録が開かない不具合を修正。</div>
  <div class="update"><strong>v2.1.0</strong>編集・新規登録ボタンの動作を改善。面積入力を整理し、改定年月を小型化。同じ建物から別の部屋パターンを追加できる機能を追加。</div>
  <div class="update"><strong>v2.0.0</strong>路線・駅の選択入力、建築年次と築年数自動計算、間取り連動の面積入力、家賃履歴、賃貸条件、外観写真、検索専用画面を追加。</div>
  <div class="update"><strong>v1.0.0</strong>賃料・値上げ額・坪単価の記録、メモ、複数条件検索、バックアップ機能を追加。</div>
@@ -170,9 +171,10 @@ dialog::backdrop{background:rgba(10,20,30,.48)}.dialog-head{display:flex;justify
 </div></dialog>
 
 <script>
-const VERSION="2.1.0", KEY="rentHistoryRecords_v2", OLD_KEY="rentHistoryRecords_v1";
+const VERSION="2.1.1", KEY="rentHistoryRecords_v2", OLD_KEY="rentHistoryRecords_v1";
 const $=id=>document.getElementById(id), money=n=>Number(n||0).toLocaleString("ja-JP");
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+function makeId(){try{return crypto.randomUUID()}catch(e){return "id-"+Date.now()+"-"+Math.random().toString(36).slice(2)}}
 const FEATURES=["オートロック","エレベーター","バストイレ別","独立洗面台","宅配ボックス","ペット可","楽器可","駐車場","駐輪場"];
 
 const LINES={
@@ -201,7 +203,7 @@ if(!records){
   ...r, lineChoice:r.line||"", stationChoice:r.station||"", builtYearValue:"",
   builtYearLabel:r.built||"", ageExact:r.age||0, ageAtLeast:false,
   layoutChoice:r.layout||"", features:[], photo:"",
-  rentHistory:[{id:crypto.randomUUID(),revisionMonth:r.revisionMonth||"",oldRent:r.oldRent||0,newRent:r.rent||0}],
+  rentHistory:[{id:makeId(),revisionMonth:r.revisionMonth||"",oldRent:r.oldRent||0,newRent:r.rent||0}],
   updatedAt:r.updatedAt||new Date().toISOString()
  }));
  localStorage.setItem(KEY,JSON.stringify(records));
@@ -235,7 +237,10 @@ function switchTab(id){
  window.scrollTo({top:0,behavior:"smooth"});
 }
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
-$("fab").addEventListener("click",()=>{resetForm();switchTab("formPanel")});
+function openNewForm(){
+ try{resetForm();switchTab("formPanel")}catch(err){console.error(err);alert("新規登録画面を開けませんでした。再読み込みしてもう一度お試しください。")}
+}
+$("fab").onclick=openNewForm;
 
 $("line").onchange=()=>{setStations($("line"),$("station"));$("otherLineWrap").style.display=$("line").value==="その他"?"block":"none"};
 $("station").onchange=()=>{$("otherStationWrap").style.display=$("station").value==="その他"?"block":"none"};
@@ -263,7 +268,7 @@ $("useManual").onclick=()=>{
 };
 
 function addHistoryRow(data={revisionMonth:"",oldRent:"",newRent:""}){
- const id=data.id||crypto.randomUUID(), div=document.createElement("div");div.className="rent-history-row";div.dataset.id=id;
+ const id=data.id||makeId(), div=document.createElement("div");div.className="rent-history-row";div.dataset.id=id;
  div.innerHTML=`<div class="history-title"><span>家賃改定</span><button type="button" class="danger remove-history">削除</button></div>
  <div class="grid"><div><label>改定年月</label><input class="hMonth" type="month" value="${esc(data.revisionMonth||"")}"></div>
  <div><label>改定前家賃（円）</label><input class="hOld" type="number" min="0" value="${data.oldRent||""}"></div>
@@ -315,7 +320,7 @@ $("propertyForm").onsubmit=e=>{
  e.preventDefault();syncArea();const hist=getHistory();if(!hist.length){alert("改定後家賃を入力してください");return}
  const lineChoice=$("line").value,stationChoice=$("station").value,layoutChoice=$("layout").value,bv=$("builtYear").value,current=new Date().getFullYear();
  const data={
-  id:$("recordId").value||crypto.randomUUID(),owner:$("owner").value.trim(),building:$("building").value.trim(),patternName:$("patternName").value.trim(),
+  id:$("recordId").value||makeId(),owner:$("owner").value.trim(),building:$("building").value.trim(),patternName:$("patternName").value.trim(),
   lineChoice,line:lineChoice==="その他"?$("otherLine").value.trim():lineChoice,
   stationChoice,station:stationChoice==="その他"?$("otherStation").value.trim():stationChoice,
   walk:Number($("walk").value||0),builtYearValue:bv,builtYearLabel:$("builtYear").selectedOptions[0]?.text||"",
@@ -387,15 +392,12 @@ function loadRecordIntoForm(r,{clone=false}={}){
  photoData=r.photo||"";if(photoData){$("photoPreview").src=photoData;$("photoPreview").style.display="block"}
  $("memo").value=r.memo||"";
 }
-$("editOne").addEventListener("click",()=>{
- const r=records.find(x=>x.id===selectedId);if(!r)return;
- $("detailDialog").close();loadRecordIntoForm(r);switchTab("formPanel");
-});
-$("cloneOne").addEventListener("click",()=>{
- const r=records.find(x=>x.id===selectedId);if(!r)return;
- $("detailDialog").close();loadRecordIntoForm(r,{clone:true});switchTab("formPanel");
- setTimeout(()=>$("patternName").focus(),150);
-});
+$("editOne").onclick=()=>{
+ try{const r=records.find(x=>x.id===selectedId);if(!r){alert("物件データが見つかりません");return}loadRecordIntoForm(r);$("detailDialog").close();switchTab("formPanel")}catch(err){console.error(err);alert("編集画面を開けませんでした。再読み込みしてもう一度お試しください。")}
+};
+$("cloneOne").onclick=()=>{
+ try{const r=records.find(x=>x.id===selectedId);if(!r){alert("物件データが見つかりません");return}loadRecordIntoForm(r,{clone:true});$("detailDialog").close();switchTab("formPanel");setTimeout(()=>$("patternName").focus(),150)}catch(err){console.error(err);alert("別パターン追加画面を開けませんでした。再読み込みしてもう一度お試しください。")}
+};
 function resetForm(){
  $("propertyForm").reset();$("recordId").value="";$("otherLineWrap").style.display="none";$("otherStationWrap").style.display="none";$("otherLayoutWrap").style.display="none";$("ageDisplay").value="";
  $("sqmWhole").value="50";$("sqmDecimal").value="50";areaMode="spinner";$("spinnerArea").style.display="block";$("manualArea").style.display="none";$("useManual").textContent="手入力に切替";syncArea();$("rentHistoryRows").innerHTML="";addHistoryRow({revisionMonth:new Date().toISOString().slice(0,7)});
