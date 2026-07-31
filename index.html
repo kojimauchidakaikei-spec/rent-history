@@ -45,6 +45,7 @@ button{font:inherit;cursor:pointer}.primary,.secondary,.ghost,.danger{border:0;b
 .area-box{display:grid;grid-template-columns:1fr auto 1fr auto;align-items:end;gap:7px}.area-unit{padding-bottom:11px;font-weight:800;color:var(--muted)}
 .toggle-row{display:flex;gap:8px;margin-top:8px}.toggle-row button{flex:1}
 .rent-history-row{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:9px;background:#fafcfd}
+.hMonth{font-size:14px;padding:8px 7px;min-height:42px}
 .history-title{display:flex;justify-content:space-between;align-items:center;font-weight:800;margin-bottom:8px}
 .photo-preview{width:100%;max-height:240px;object-fit:cover;border-radius:12px;border:1px solid var(--line);display:none;margin-top:9px}
 .fab{position:fixed;right:18px;bottom:22px;width:58px;height:58px;border-radius:50%;border:0;background:var(--navy);color:#fff;font-size:29px;box-shadow:0 8px 22px rgba(32,61,93,.36);z-index:40}
@@ -62,7 +63,7 @@ dialog::backdrop{background:rgba(10,20,30,.48)}.dialog-head{display:flex;justify
 </style>
 </head>
 <body>
-<header><div class="header-row"><h1>賃料履歴</h1><button class="version" id="versionBtn">v2.0.0</button></div></header>
+<header><div class="header-row"><h1>賃料履歴</h1><button class="version" id="versionBtn">v2.1.0</button></div></header>
 <main>
 <div class="tabs">
  <button class="tab active" data-tab="listPanel">一覧</button>
@@ -106,6 +107,7 @@ dialog::backdrop{background:rgba(10,20,30,.48)}.dialog-head{display:flex;justify
 <div class="card"><h2>お客さん・建物</h2><div class="grid">
  <div><label>お客さん名（苗字など）*</label><input id="owner" required></div>
  <div><label>建物名</label><input id="building"></div>
+ <div><label>部屋パターン名</label><input id="patternName" placeholder="例：2LDK・55㎡タイプ"></div>
  <div><label>路線</label><select id="line"></select></div>
  <div id="otherLineWrap" style="display:none"><label>その他の路線名</label><input id="otherLine"></div>
  <div><label>最寄駅</label><select id="station"></select></div>
@@ -126,7 +128,7 @@ dialog::backdrop{background:rgba(10,20,30,.48)}.dialog-head{display:flex;justify
   </div>
  </div>
  <div id="manualArea" style="display:none"><label>面積を直接入力（㎡）</label><input id="sqmManual" type="number" min="0" step="0.01"></div>
- <div class="toggle-row"><button type="button" class="secondary" id="useSpinner">コロコロ入力</button><button type="button" class="ghost" id="useManual">手入力</button></div>
+ <div class="toggle-row"><button type="button" class="ghost" id="useManual">手入力に切替</button></div>
  <div class="grid" style="margin-top:10px">
   <div><label>面積（㎡）</label><input id="sqm" class="readonly" readonly></div>
   <div><label>面積（坪）</label><input id="tsubo" class="readonly" readonly></div>
@@ -155,8 +157,9 @@ dialog::backdrop{background:rgba(10,20,30,.48)}.dialog-head{display:flex;justify
 </main>
 <button class="fab" id="fab">＋</button>
 
-<dialog id="detailDialog"><div class="dialog-head"><h3>物件詳細</h3><button class="close" id="closeDetail">×</button></div><div class="dialog-body" id="detailBody"></div><div class="dialog-actions"><button class="danger" id="deleteOne">削除</button><button class="primary" id="editOne">編集</button></div></dialog>
+<dialog id="detailDialog"><div class="dialog-head"><h3>物件詳細</h3><button class="close" id="closeDetail">×</button></div><div class="dialog-body" id="detailBody"></div><div class="dialog-actions"><button class="secondary" id="cloneOne">別パターン追加</button><button class="danger" id="deleteOne">削除</button><button class="primary" id="editOne">編集</button></div></dialog>
 <dialog id="versionDialog"><div class="dialog-head"><h3>アップデート履歴</h3><button class="close" id="closeVersion">×</button></div><div class="dialog-body">
+ <div class="update"><strong>v2.1.0</strong>編集・新規登録ボタンの動作を改善。面積入力を整理し、改定年月を小型化。同じ建物から別の部屋パターンを追加できる機能を追加。</div>
  <div class="update"><strong>v2.0.0</strong>路線・駅の選択入力、建築年次と築年数自動計算、間取り連動の面積入力、家賃履歴、賃貸条件、外観写真、検索専用画面を追加。</div>
  <div class="update"><strong>v1.0.0</strong>賃料・値上げ額・坪単価の記録、メモ、複数条件検索、バックアップ機能を追加。</div>
 </div></dialog>
@@ -167,7 +170,7 @@ dialog::backdrop{background:rgba(10,20,30,.48)}.dialog-head{display:flex;justify
 </div></dialog>
 
 <script>
-const VERSION="2.0.0", KEY="rentHistoryRecords_v2", OLD_KEY="rentHistoryRecords_v1";
+const VERSION="2.1.0", KEY="rentHistoryRecords_v2", OLD_KEY="rentHistoryRecords_v1";
 const $=id=>document.getElementById(id), money=n=>Number(n||0).toLocaleString("ja-JP");
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 const FEATURES=["オートロック","エレベーター","バストイレ別","独立洗面台","宅配ボックス","ペット可","楽器可","駐車場","駐輪場"];
@@ -232,7 +235,7 @@ function switchTab(id){
  window.scrollTo({top:0,behavior:"smooth"});
 }
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
-$("fab").onclick=()=>{resetForm();switchTab("formPanel")};
+$("fab").addEventListener("click",()=>{resetForm();switchTab("formPanel")});
 
 $("line").onchange=()=>{setStations($("line"),$("station"));$("otherLineWrap").style.display=$("line").value==="その他"?"block":"none"};
 $("station").onchange=()=>{$("otherStationWrap").style.display=$("station").value==="その他"?"block":"none"};
@@ -253,8 +256,11 @@ function syncArea(){
  $("sqm").value=sqm?sqm.toFixed(2):"";$("tsubo").value=sqm?(sqm/3.305785).toFixed(2):"";
 }
 ["sqmWhole","sqmDecimal"].forEach(id=>$(id).onchange=syncArea);$("sqmManual").oninput=syncArea;
-$("useSpinner").onclick=()=>{areaMode="spinner";$("spinnerArea").style.display="block";$("manualArea").style.display="none";syncArea()};
-$("useManual").onclick=()=>{areaMode="manual";$("manualArea").style.display="block";$("spinnerArea").style.display="none";$("sqmManual").value=$("sqm").value;syncArea()};
+$("useManual").onclick=()=>{
+ if(areaMode==="spinner"){areaMode="manual";$("manualArea").style.display="block";$("spinnerArea").style.display="none";$("sqmManual").value=$("sqm").value;$("useManual").textContent="コロコロ入力に戻す";}
+ else{areaMode="spinner";$("spinnerArea").style.display="block";$("manualArea").style.display="none";$("useManual").textContent="手入力に切替";}
+ syncArea();calcHistory();
+};
 
 function addHistoryRow(data={revisionMonth:"",oldRent:"",newRent:""}){
  const id=data.id||crypto.randomUUID(), div=document.createElement("div");div.className="rent-history-row";div.dataset.id=id;
@@ -309,7 +315,7 @@ $("propertyForm").onsubmit=e=>{
  e.preventDefault();syncArea();const hist=getHistory();if(!hist.length){alert("改定後家賃を入力してください");return}
  const lineChoice=$("line").value,stationChoice=$("station").value,layoutChoice=$("layout").value,bv=$("builtYear").value,current=new Date().getFullYear();
  const data={
-  id:$("recordId").value||crypto.randomUUID(),owner:$("owner").value.trim(),building:$("building").value.trim(),
+  id:$("recordId").value||crypto.randomUUID(),owner:$("owner").value.trim(),building:$("building").value.trim(),patternName:$("patternName").value.trim(),
   lineChoice,line:lineChoice==="その他"?$("otherLine").value.trim():lineChoice,
   stationChoice,station:stationChoice==="その他"?$("otherStation").value.trim():stationChoice,
   walk:Number($("walk").value||0),builtYearValue:bv,builtYearLabel:$("builtYear").selectedOptions[0]?.text||"",
@@ -326,7 +332,7 @@ $("propertyForm").onsubmit=e=>{
 
 function card(r){
  const m=metrics(r),age=r.ageAtLeast?`築${r.ageExact}年以上`:r.ageExact?`築${r.ageExact}年`:"";
- return `<div class="item" onclick="openDetail('${r.id}')"><div class="item-top"><div><div class="owner">${esc(r.owner)}</div><div class="building">${esc(r.building||"建物名未入力")}</div></div><div class="rent">${money(m.rent)}円</div></div>
+ return `<div class="item" data-record-id="${r.id}"><div class="item-top"><div><div class="owner">${esc(r.owner)}</div><div class="building">${esc(r.building||"建物名未入力")}${r.patternName?`<br><span class="small">${esc(r.patternName)}</span>`:""}</div></div><div class="rent">${money(m.rent)}円</div></div>
  <div class="meta">${r.line||r.station?`<span class="badge">${esc([r.line,r.station].filter(Boolean).join(" "))}${r.walk?` 徒歩${r.walk}分`:""}</span>`:""}
  ${r.structure?`<span class="badge">${esc(r.structure)}</span>`:""}${r.layout?`<span class="badge">${esc(r.layout)}</span>`:""}${age?`<span class="badge">${age}</span>`:""}<br>
  ${r.sqm?`${r.sqm.toFixed(2)}㎡（${r.tsubo.toFixed(2)}坪）`:""}${m.perTsubo?`・坪単価 ${money(m.perTsubo)}円`:""}${m.raise?`・直近値上げ ${m.raise>0?"+":""}${money(m.raise)}円`:""}</div>
@@ -336,11 +342,12 @@ function renderAll(){
  const arr=[...records].sort((a,b)=>new Date(b.updatedAt)-new Date(a.updatedAt));$("listCount").textContent=`全${arr.length}件`;
  $("allList").innerHTML=arr.length?arr.map(card).join(""):`<div class="empty">まだ物件が登録されていません</div>`
 }
+document.addEventListener("click",e=>{const item=e.target.closest(".item[data-record-id]");if(item)openDetail(item.dataset.recordId)});
 function filtered(){
  const q=$("q").value.trim().toLowerCase(),line=$("fLine").value,station=$("fStation").value,structure=$("fStructure").value,layout=$("fLayout").value;
  const walk=Number($("fWalkMax").value||0),amin=Number($("fAgeMin").value||0),amax=Number($("fAgeMax").value||0),rmin=Number($("fRentMin").value||0),rmax=Number($("fRentMax").value||0),tmin=Number($("fTsuboMin").value||0);
  const raiseRaw=$("fRaiseMin").value,raiseMin=raiseRaw===""?null:Number(raiseRaw),features=[...document.querySelectorAll('input[name="filterFeature"]:checked')].map(x=>x.value);
- let arr=records.filter(r=>{const m=metrics(r),text=[r.owner,r.building,r.line,r.station,r.structure,r.layout,r.memo].join(" ").toLowerCase();
+ let arr=records.filter(r=>{const m=metrics(r),text=[r.owner,r.building,r.patternName,r.line,r.station,r.structure,r.layout,r.memo].join(" ").toLowerCase();
   return(!q||text.includes(q))&&(!line||r.lineChoice===line||r.line===line)&&(!station||r.stationChoice===station||r.station===station)&&(!structure||r.structure===structure)&&(!layout||r.layoutChoice===layout||r.layout===layout)
   &&(!walk||r.walk<=walk)&&(!amin||r.ageExact>=amin)&&(!amax||(!r.ageAtLeast&&r.ageExact<=amax))&&(!rmin||m.rent>=rmin)&&(!rmax||m.rent<=rmax)&&(!tmin||m.perTsubo>=tmin)&&(raiseMin===null||m.raise>=raiseMin)
   &&features.every(f=>(r.features||[]).includes(f))
@@ -355,25 +362,43 @@ $("clearFilters").onclick=()=>{["q","fLine","fStation","fStructure","fLayout","f
 window.openDetail=id=>{
  selectedId=id;const r=records.find(x=>x.id===id);if(!r)return;const m=metrics(r),age=r.ageAtLeast?`築${r.ageExact}年以上`:r.ageExact?`築${r.ageExact}年`:"未入力";
  const hist=normalizedHistory(r).map(h=>{const raise=h.newRent-h.oldRent,t=r.tsubo||0;return `<div class="rent-history-row"><strong>${esc(h.revisionMonth||"年月未入力")}</strong><div class="meta">改定前 ${h.oldRent?money(h.oldRent)+"円":"未入力"} → 改定後 ${money(h.newRent)}円<br>値上げ ${raise>0?"+":""}${money(raise)}円・坪単価 ${t?money(Math.round(h.newRent/t))+"円":"未計算"}</div></div>`}).join("");
- $("detailBody").innerHTML=`${r.photo?`<img class="detail-photo" src="${r.photo}">`:""}<div class="owner">${esc(r.owner)}　${esc(r.building||"")}</div><div class="meta" style="margin-top:12px">
+ $("detailBody").innerHTML=`${r.photo?`<img class="detail-photo" src="${r.photo}">`:""}<div class="owner">${esc(r.owner)}　${esc(r.building||"")}</div>${r.patternName?`<div class="building" style="margin-top:4px">${esc(r.patternName)}</div>`:""}<div class="meta" style="margin-top:12px">
  路線・駅：${esc([r.line,r.station].filter(Boolean).join(" ")||"未入力")} ${r.walk?`（徒歩${r.walk}分）`:""}<br>建築年次：${esc(r.builtYearLabel||"未入力")}（${age}）<br>構造：${esc(r.structure||"未入力")}<br>間取り：${esc(r.layout||"未入力")}<br>面積：${r.sqm?`${r.sqm.toFixed(2)}㎡（${r.tsubo.toFixed(2)}坪）`:"未入力"}<br>現在家賃：${money(m.rent)}円<br>現在坪単価：${money(m.perTsubo)}円</div>
  ${(r.features||[]).length?`<div class="subhead">賃貸条件</div>${r.features.map(f=>`<span class="badge">${esc(f)}</span>`).join("")}`:""}<div class="subhead">家賃履歴</div>${hist}${r.memo?`<div class="subhead">メモ</div><div class="memo">${esc(r.memo)}</div>`:""}`;
  $("detailDialog").showModal()
 };
 $("closeDetail").onclick=()=>$("detailDialog").close();
 $("deleteOne").onclick=()=>{if(confirm("この物件を削除しますか？")){records=records.filter(r=>r.id!==selectedId);save();renderAll();renderSearch();$("detailDialog").close()}};
-$("editOne").onclick=()=>{
- const r=records.find(x=>x.id===selectedId);if(!r)return;resetForm();$("recordId").value=r.id;$("owner").value=r.owner||"";$("building").value=r.building||"";
+function loadRecordIntoForm(r,{clone=false}={}){
+ resetForm();
+ $("recordId").value=clone?"":r.id;
+ $("owner").value=r.owner||"";$("building").value=r.building||"";$("patternName").value=clone?"":(r.patternName||"");
  $("line").value=r.lineChoice||([...Object.keys(LINES)].includes(r.line)?r.line:"その他");$("line").onchange();if($("line").value==="その他")$("otherLine").value=r.line||"";
  setStations($("line"),$("station"),r.stationChoice||r.station);if(![...$("station").options].some(o=>o.value===(r.stationChoice||r.station)))$("station").value="その他";$("station").onchange();if($("station").value==="その他")$("otherStation").value=r.station||"";
- $("walk").value=r.walk||"";$("builtYear").value=r.builtYearValue||"";updateAge();$("structure").value=r.structure||"";$("layout").value=r.layoutChoice||([...LAYOUTS].includes(r.layout)?r.layout:"その他");$("layout").onchange();if($("layout").value==="その他")$("otherLayout").value=r.layout||"";
- const parts=Number(r.sqm||0).toFixed(2).split(".");$("sqmWhole").value=parts[0];$("sqmDecimal").value=parts[1];areaMode="spinner";$("spinnerArea").style.display="block";$("manualArea").style.display="none";syncArea();
- $("rentHistoryRows").innerHTML="";(r.rentHistory||[]).forEach(addHistoryRow);if(!(r.rentHistory||[]).length)addHistoryRow();document.querySelectorAll('input[name="feature"]').forEach(x=>x.checked=(r.features||[]).includes(x.value));
- photoData=r.photo||"";if(photoData){$("photoPreview").src=photoData;$("photoPreview").style.display="block"}$("memo").value=r.memo||"";$("detailDialog").close();switchTab("formPanel")
-};
+ $("walk").value=r.walk||"";$("builtYear").value=r.builtYearValue||"";updateAge();$("structure").value=r.structure||"";
+ if(!clone){
+  $("layout").value=r.layoutChoice||([...LAYOUTS].includes(r.layout)?r.layout:"その他");$("layout").onchange();if($("layout").value==="その他")$("otherLayout").value=r.layout||"";
+  const parts=Number(r.sqm||0).toFixed(2).split(".");$("sqmWhole").value=parts[0];$("sqmDecimal").value=parts[1];syncArea();
+  $("rentHistoryRows").innerHTML="";(r.rentHistory||[]).forEach(addHistoryRow);if(!(r.rentHistory||[]).length)addHistoryRow();
+ }else{
+  $("layout").value="";$("sqmWhole").value="50";$("sqmDecimal").value="50";syncArea();$("rentHistoryRows").innerHTML="";addHistoryRow({revisionMonth:new Date().toISOString().slice(0,7)});
+ }
+ document.querySelectorAll('input[name="feature"]').forEach(x=>x.checked=(r.features||[]).includes(x.value));
+ photoData=r.photo||"";if(photoData){$("photoPreview").src=photoData;$("photoPreview").style.display="block"}
+ $("memo").value=r.memo||"";
+}
+$("editOne").addEventListener("click",()=>{
+ const r=records.find(x=>x.id===selectedId);if(!r)return;
+ $("detailDialog").close();loadRecordIntoForm(r);switchTab("formPanel");
+});
+$("cloneOne").addEventListener("click",()=>{
+ const r=records.find(x=>x.id===selectedId);if(!r)return;
+ $("detailDialog").close();loadRecordIntoForm(r,{clone:true});switchTab("formPanel");
+ setTimeout(()=>$("patternName").focus(),150);
+});
 function resetForm(){
  $("propertyForm").reset();$("recordId").value="";$("otherLineWrap").style.display="none";$("otherStationWrap").style.display="none";$("otherLayoutWrap").style.display="none";$("ageDisplay").value="";
- $("sqmWhole").value="50";$("sqmDecimal").value="50";areaMode="spinner";$("spinnerArea").style.display="block";$("manualArea").style.display="none";syncArea();$("rentHistoryRows").innerHTML="";addHistoryRow({revisionMonth:new Date().toISOString().slice(0,7)});
+ $("sqmWhole").value="50";$("sqmDecimal").value="50";areaMode="spinner";$("spinnerArea").style.display="block";$("manualArea").style.display="none";$("useManual").textContent="手入力に切替";syncArea();$("rentHistoryRows").innerHTML="";addHistoryRow({revisionMonth:new Date().toISOString().slice(0,7)});
  photoData="";$("photoPreview").src="";$("photoPreview").style.display="none";$("photoInput").value=""
 }
 $("resetForm").onclick=resetForm;
