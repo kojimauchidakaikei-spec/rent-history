@@ -1,522 +1,389 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#17324d" />
-  <link rel="manifest" href="manifest.json" />
-  <title>賃料履歴</title>
-  <style>
-    :root{
-      --navy:#17324d; --navy2:#244b70; --bg:#f4f6f8; --card:#fff;
-      --line:#d9e0e6; --text:#1f2933; --muted:#687582; --danger:#b42318;
-      --ok:#157347; --shadow:0 5px 18px rgba(27,50,73,.08);
-    }
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif}
-    header{position:sticky;top:0;z-index:20;background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;padding:14px 16px 12px;box-shadow:0 2px 12px rgba(0,0,0,.14)}
-    .head-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
-    h1{font-size:21px;margin:0;font-weight:800}
-    .version{font-size:11px;opacity:.9;border:1px solid rgba(255,255,255,.45);padding:3px 7px;border-radius:999px}
-    main{max-width:980px;margin:0 auto;padding:14px 12px 90px}
-    .tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
-    .tab{border:0;border-radius:12px;padding:11px;background:#dfe7ee;color:#28435b;font-weight:700}
-    .tab.active{background:var(--navy);color:#fff}
-    .panel{display:none}.panel.active{display:block}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow)}
-    .card h2{font-size:17px;margin:0 0 12px}
-    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-    .grid .full{grid-column:1/-1}
-    label{font-size:12px;color:var(--muted);font-weight:700;display:block;margin-bottom:5px}
-    input,select,textarea{width:100%;font-size:16px;padding:10px 11px;border:1px solid #c9d2da;border-radius:10px;background:#fff;color:var(--text)}
-    textarea{min-height:90px;resize:vertical}
-    .readonly{background:#edf2f6}
-    .btnrow{display:flex;gap:8px;flex-wrap:wrap}
-    button{font:inherit;cursor:pointer}
-    .primary,.secondary,.danger,.ghost{border:0;border-radius:11px;padding:11px 14px;font-weight:800}
-    .primary{background:var(--navy);color:#fff}
-    .secondary{background:#e4edf5;color:#17324d}
-    .danger{background:#fee4e2;color:var(--danger)}
-    .ghost{background:#eef1f4;color:#465460}
-    .search-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-    .list{display:grid;gap:10px}
-    .item{border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}
-    .item-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
-    .owner{font-weight:800;font-size:17px}
-    .building{font-weight:700;color:#334b60;margin-top:2px}
-    .rent{font-weight:900;font-size:18px;color:var(--navy)}
-    .meta{font-size:13px;color:#596875;margin-top:7px;line-height:1.65}
-    .memo{margin-top:8px;padding:8px 10px;background:#f4f7f9;border-radius:9px;font-size:13px;white-space:pre-wrap}
-    .small{font-size:12px;color:var(--muted)}
-    .badge{display:inline-block;background:#e8f1f7;color:#244b70;border-radius:999px;padding:3px 8px;font-size:11px;font-weight:800;margin-right:5px}
-    .empty{text-align:center;padding:28px 12px;color:var(--muted)}
-    .result-count{font-size:13px;color:var(--muted);margin:4px 0 10px}
-    .fab{position:fixed;right:18px;bottom:22px;width:58px;height:58px;border-radius:50%;border:0;background:var(--navy);color:#fff;font-size:29px;box-shadow:0 8px 22px rgba(23,50,77,.35);z-index:30}
-    dialog{width:min(92vw,560px);border:0;border-radius:18px;padding:0;box-shadow:0 18px 60px rgba(0,0,0,.3)}
-    dialog::backdrop{background:rgba(12,22,32,.46)}
-    .dialog-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:var(--navy);color:#fff}
-    .dialog-head h3{margin:0;font-size:17px}
-    .close{border:0;background:transparent;color:#fff;font-size:25px}
-    .dialog-body{padding:14px;max-height:72vh;overflow:auto}
-    .dialog-actions{padding:12px 14px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end}
-    .io{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-    @media (max-width:700px){
-      .grid,.search-grid{grid-template-columns:1fr 1fr}
-      .search-grid .wide{grid-column:1/-1}
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#203d5d">
+<link rel="manifest" href="manifest.json">
+<title>賃料履歴</title>
+<style>
+:root{
+  --navy:#203d5d;--navy2:#315b83;--bg:#f3f6f8;--card:#fff;--line:#d5dee6;
+  --text:#1d2935;--muted:#657584;--soft:#e8eff5;--danger:#b42318;--green:#176b4d;
+  --shadow:0 5px 18px rgba(32,61,93,.09)
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif}
+header{position:sticky;top:0;z-index:30;background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;padding:14px 16px 12px;box-shadow:0 2px 12px rgba(0,0,0,.14)}
+.header-row{display:flex;align-items:center;justify-content:space-between}
+h1{font-size:22px;margin:0}.version{border:1px solid rgba(255,255,255,.55);border-radius:999px;padding:4px 9px;font-size:12px;background:transparent;color:#fff}
+main{max-width:980px;margin:auto;padding:13px 12px 90px}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px}
+.tab{border:0;border-radius:12px;padding:11px 4px;background:#dfe7ee;color:#29445e;font-weight:800}
+.tab.active{background:var(--navy);color:#fff}
+.panel{display:none}.panel.active{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow)}
+.card h2{font-size:17px;margin:0 0 12px}.subhead{font-weight:800;font-size:14px;margin:14px 0 8px;color:#38526a}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.full{grid-column:1/-1}
+label{display:block;font-size:12px;color:var(--muted);font-weight:800;margin-bottom:5px}
+input,select,textarea{width:100%;border:1px solid #c8d2db;border-radius:10px;padding:10px 11px;background:#fff;color:var(--text);font-size:16px}
+textarea{min-height:92px;resize:vertical}.readonly{background:#edf2f6}
+button{font:inherit;cursor:pointer}.primary,.secondary,.ghost,.danger{border:0;border-radius:11px;padding:11px 14px;font-weight:800}
+.primary{background:var(--navy);color:#fff}.secondary{background:#e3edf5;color:var(--navy)}
+.ghost{background:#eef1f4;color:#475969}.danger{background:#fee4e2;color:var(--danger)}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap}.btnrow>*{flex:0 0 auto}
+.search-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.list{display:grid;gap:10px}.item{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px}
+.item-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.owner{font-size:17px;font-weight:900}.building{font-weight:700;color:#3d5366}
+.rent{font-size:18px;font-weight:900;color:var(--navy);white-space:nowrap}.meta{font-size:13px;color:#586977;line-height:1.65;margin-top:7px}
+.badge{display:inline-block;background:#e7f0f6;color:#264c70;border-radius:999px;padding:3px 8px;font-size:11px;font-weight:800;margin:2px 3px 2px 0}
+.memo{background:#f3f7f9;border-radius:9px;padding:8px 10px;margin-top:8px;font-size:13px;white-space:pre-wrap}
+.empty{text-align:center;color:var(--muted);padding:28px 10px}.count{font-size:13px;color:var(--muted);margin:6px 0 10px}
+.checks{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.check{display:flex;align-items:center;gap:7px;padding:9px;border:1px solid var(--line);border-radius:10px;font-size:13px;background:#fff}
+.check input{width:auto;margin:0;transform:scale(1.15)}
+.area-box{display:grid;grid-template-columns:1fr auto 1fr auto;align-items:end;gap:7px}.area-unit{padding-bottom:11px;font-weight:800;color:var(--muted)}
+.toggle-row{display:flex;gap:8px;margin-top:8px}.toggle-row button{flex:1}
+.rent-history-row{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:9px;background:#fafcfd}
+.history-title{display:flex;justify-content:space-between;align-items:center;font-weight:800;margin-bottom:8px}
+.photo-preview{width:100%;max-height:240px;object-fit:cover;border-radius:12px;border:1px solid var(--line);display:none;margin-top:9px}
+.fab{position:fixed;right:18px;bottom:22px;width:58px;height:58px;border-radius:50%;border:0;background:var(--navy);color:#fff;font-size:29px;box-shadow:0 8px 22px rgba(32,61,93,.36);z-index:40}
+dialog{width:min(93vw,590px);border:0;border-radius:18px;padding:0;box-shadow:0 20px 65px rgba(0,0,0,.32)}
+dialog::backdrop{background:rgba(10,20,30,.48)}.dialog-head{display:flex;justify-content:space-between;align-items:center;background:var(--navy);color:#fff;padding:14px 16px}
+.dialog-head h3{margin:0;font-size:17px}.close{border:0;background:transparent;color:#fff;font-size:26px}.dialog-body{padding:14px;max-height:72vh;overflow:auto}
+.dialog-actions{padding:12px 14px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end}
+.detail-photo{width:100%;max-height:260px;object-fit:cover;border-radius:12px;margin-bottom:12px}
+.update{border-left:4px solid var(--navy2);padding:8px 10px;background:#f3f7fa;border-radius:8px;margin-bottom:9px}.update strong{display:block;margin-bottom:4px}
+.small{font-size:12px;color:var(--muted)}hr{border:0;border-top:1px solid var(--line);margin:16px 0}
+@media(max-width:700px){
+ .search-grid{grid-template-columns:1fr 1fr}.search-grid .wide{grid-column:1/-1}
+ .checks{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr 1fr}
+}
+</style>
 </head>
 <body>
-<header>
-  <div class="head-row">
-    <h1>賃料履歴</h1>
-    <span class="version">v1.0.0</span>
-  </div>
-</header>
-
+<header><div class="header-row"><h1>賃料履歴</h1><button class="version" id="versionBtn">v2.0.0</button></div></header>
 <main>
-  <div class="tabs">
-    <button class="tab active" data-tab="listPanel">一覧・検索</button>
-    <button class="tab" data-tab="addPanel">新規登録</button>
+<div class="tabs">
+ <button class="tab active" data-tab="listPanel">一覧</button>
+ <button class="tab" data-tab="searchPanel">検索</button>
+ <button class="tab" data-tab="formPanel">新規登録</button>
+</div>
+
+<section id="listPanel" class="panel active">
+ <div class="card">
+  <div class="item-top"><h2 style="margin:0">登録物件</h2><button class="ghost" id="openIo">データ管理</button></div>
+  <div id="listCount" class="count"></div><div id="allList" class="list"></div>
+ </div>
+</section>
+
+<section id="searchPanel" class="panel">
+ <div class="card"><h2>複数条件検索</h2>
+  <div class="search-grid">
+   <div class="wide"><label>キーワード</label><input id="q" placeholder="お客さん・建物・駅・路線・メモ"></div>
+   <div><label>路線</label><select id="fLine"></select></div>
+   <div><label>最寄駅</label><select id="fStation"><option value="">すべて</option></select></div>
+   <div><label>構造</label><select id="fStructure"><option value="">すべて</option><option>木造</option><option>軽量鉄骨造</option><option>鉄骨造</option><option>RC造</option><option>SRC造</option><option>その他</option></select></div>
+   <div><label>間取り</label><select id="fLayout"></select></div>
+   <div><label>徒歩（分以内）</label><input id="fWalkMax" type="number" min="0"></div>
+   <div><label>築年数（年以上）</label><input id="fAgeMin" type="number" min="0"></div>
+   <div><label>築年数（年以下）</label><input id="fAgeMax" type="number" min="0"></div>
+   <div><label>家賃（円以上）</label><input id="fRentMin" type="number" min="0"></div>
+   <div><label>家賃（円以下）</label><input id="fRentMax" type="number" min="0"></div>
+   <div><label>坪単価（円以上）</label><input id="fTsuboMin" type="number" min="0"></div>
+   <div><label>値上げ額（円以上）</label><input id="fRaiseMin" type="number"></div>
+   <div><label>並び順</label><select id="sortBy"><option value="new">更新が新しい順</option><option value="rentDesc">家賃が高い順</option><option value="tsuboDesc">坪単価が高い順</option><option value="raiseDesc">値上げ額が大きい順</option><option value="walkAsc">駅徒歩が近い順</option></select></div>
   </div>
+  <div class="subhead">賃貸条件</div><div id="filterFeatures" class="checks"></div>
+  <div class="btnrow" style="margin-top:12px"><button class="secondary" id="clearFilters">条件をクリア</button></div>
+ </div>
+ <div class="card"><h2>検索結果</h2><div id="searchCount" class="count"></div><div id="searchList" class="list"></div></div>
+</section>
 
-  <section id="listPanel" class="panel active">
-    <div class="card">
-      <h2>複数条件検索</h2>
-      <div class="search-grid">
-        <div class="wide">
-          <label>キーワード</label>
-          <input id="q" placeholder="お客さん・建物・駅・路線・メモ" />
-        </div>
-        <div>
-          <label>構造</label>
-          <select id="fStructure">
-            <option value="">すべて</option>
-            <option>木造</option><option>軽量鉄骨造</option><option>鉄骨造</option>
-            <option>RC造</option><option>SRC造</option><option>その他</option>
-          </select>
-        </div>
-        <div>
-          <label>間取り</label>
-          <input id="fLayout" placeholder="例：2DK" />
-        </div>
-        <div>
-          <label>徒歩（分以内）</label>
-          <input id="fWalkMax" type="number" min="0" />
-        </div>
-        <div>
-          <label>築年数（年以上）</label>
-          <input id="fAgeMin" type="number" min="0" />
-        </div>
-        <div>
-          <label>築年数（年以下）</label>
-          <input id="fAgeMax" type="number" min="0" />
-        </div>
-        <div>
-          <label>家賃（円以上）</label>
-          <input id="fRentMin" type="number" min="0" />
-        </div>
-        <div>
-          <label>家賃（円以下）</label>
-          <input id="fRentMax" type="number" min="0" />
-        </div>
-        <div>
-          <label>坪単価（円以上）</label>
-          <input id="fTsuboMin" type="number" min="0" />
-        </div>
-        <div>
-          <label>値上げ額（円以上）</label>
-          <input id="fRaiseMin" type="number" />
-        </div>
-        <div>
-          <label>並び順</label>
-          <select id="sortBy">
-            <option value="new">更新が新しい順</option>
-            <option value="rentDesc">家賃が高い順</option>
-            <option value="tsuboDesc">坪単価が高い順</option>
-            <option value="raiseDesc">値上げ額が大きい順</option>
-            <option value="walkAsc">駅徒歩が近い順</option>
-          </select>
-        </div>
-      </div>
-      <div class="btnrow" style="margin-top:10px">
-        <button class="secondary" id="clearFilters">条件をクリア</button>
-      </div>
-    </div>
+<section id="formPanel" class="panel">
+<form id="propertyForm">
+<input type="hidden" id="recordId">
+<div class="card"><h2>お客さん・建物</h2><div class="grid">
+ <div><label>お客さん名（苗字など）*</label><input id="owner" required></div>
+ <div><label>建物名</label><input id="building"></div>
+ <div><label>路線</label><select id="line"></select></div>
+ <div id="otherLineWrap" style="display:none"><label>その他の路線名</label><input id="otherLine"></div>
+ <div><label>最寄駅</label><select id="station"></select></div>
+ <div id="otherStationWrap" style="display:none"><label>その他の駅名</label><input id="otherStation"></div>
+ <div><label>徒歩（分）</label><input id="walk" type="number" min="0"></div>
+ <div><label>建築年次</label><select id="builtYear"></select></div>
+ <div><label>築年数（自動）</label><input id="ageDisplay" class="readonly" readonly></div>
+ <div><label>構造</label><select id="structure"><option value="">選択</option><option>木造</option><option>軽量鉄骨造</option><option>鉄骨造</option><option>RC造</option><option>SRC造</option><option>その他</option></select></div>
+ <div><label>間取り</label><select id="layout"></select></div>
+ <div id="otherLayoutWrap" style="display:none"><label>その他の間取り</label><input id="otherLayout"></div>
+</div></div>
 
-    <div class="card">
-      <div class="item-top">
-        <h2 style="margin:0">登録物件</h2>
-        <button class="ghost" id="openIo">データ管理</button>
-      </div>
-      <div id="resultCount" class="result-count"></div>
-      <div id="list" class="list"></div>
-    </div>
-  </section>
+<div class="card"><h2>面積</h2>
+ <div id="spinnerArea">
+  <div class="area-box">
+   <div><label>整数部分</label><select id="sqmWhole"></select></div><div class="area-unit">.</div>
+   <div><label>小数部分</label><select id="sqmDecimal"></select></div><div class="area-unit">㎡</div>
+  </div>
+ </div>
+ <div id="manualArea" style="display:none"><label>面積を直接入力（㎡）</label><input id="sqmManual" type="number" min="0" step="0.01"></div>
+ <div class="toggle-row"><button type="button" class="secondary" id="useSpinner">コロコロ入力</button><button type="button" class="ghost" id="useManual">手入力</button></div>
+ <div class="grid" style="margin-top:10px">
+  <div><label>面積（㎡）</label><input id="sqm" class="readonly" readonly></div>
+  <div><label>面積（坪）</label><input id="tsubo" class="readonly" readonly></div>
+ </div>
+</div>
 
-  <section id="addPanel" class="panel">
-    <form id="rentForm">
-      <input type="hidden" id="recordId" />
-      <div class="card">
-        <h2>お客さん・建物</h2>
-        <div class="grid">
-          <div>
-            <label>お客さん名（苗字など）*</label>
-            <input id="owner" required />
-          </div>
-          <div>
-            <label>建物名</label>
-            <input id="building" />
-          </div>
-          <div>
-            <label>路線</label>
-            <input id="line" placeholder="例：東急東横線" />
-          </div>
-          <div>
-            <label>最寄駅</label>
-            <input id="station" placeholder="例：学芸大学" />
-          </div>
-          <div>
-            <label>徒歩（分）</label>
-            <input id="walk" type="number" min="0" />
-          </div>
-          <div>
-            <label>築年月</label>
-            <input id="built" placeholder="例：昭和63年4月／1988年4月" />
-          </div>
-          <div>
-            <label>構造</label>
-            <select id="structure">
-              <option value="">選択</option>
-              <option>木造</option><option>軽量鉄骨造</option><option>鉄骨造</option>
-              <option>RC造</option><option>SRC造</option><option>その他</option>
-            </select>
-          </div>
-          <div>
-            <label>築年数（検索用）</label>
-            <input id="age" type="number" min="0" placeholder="例：38" />
-          </div>
-          <div>
-            <label>間取り</label>
-            <input id="layout" placeholder="例：2DK" />
-          </div>
-          <div>
-            <label>面積（㎡）*</label>
-            <input id="sqm" type="number" min="0" step="0.01" required />
-          </div>
-          <div>
-            <label>面積（坪）</label>
-            <input id="tsubo" class="readonly" readonly />
-          </div>
-        </div>
-      </div>
+<div class="card"><h2>家賃履歴</h2>
+ <div id="rentHistoryRows"></div>
+ <button type="button" class="secondary" id="addHistory">＋ 履歴を追加</button>
+ <p class="small">最新の履歴が一覧の「現在家賃」として表示されます。</p>
+</div>
 
-      <div class="card">
-        <h2>賃料・値上げ</h2>
-        <div class="grid">
-          <div>
-            <label>改定前家賃（円）</label>
-            <input id="oldRent" type="number" min="0" />
-          </div>
-          <div>
-            <label>現在家賃（円）*</label>
-            <input id="rent" type="number" min="0" required />
-          </div>
-          <div>
-            <label>現在の坪単価（円）</label>
-            <input id="rentPerTsubo" class="readonly" readonly />
-          </div>
-          <div>
-            <label>値上げ額（円）</label>
-            <input id="raiseAmount" class="readonly" readonly />
-          </div>
-          <div>
-            <label>坪当たり値上げ額（円）</label>
-            <input id="raisePerTsubo" class="readonly" readonly />
-          </div>
-          <div>
-            <label>値上げ率（％）</label>
-            <input id="raiseRate" class="readonly" readonly />
-          </div>
-          <div>
-            <label>改定年月</label>
-            <input id="revisionMonth" type="month" />
-          </div>
-        </div>
-      </div>
+<div class="card"><h2>賃貸条件</h2><div id="featureChecks" class="checks"></div></div>
 
-      <div class="card">
-        <h2>メモ</h2>
-        <textarea id="memo" placeholder="例：更新料なし、ペット可、2025年に室内リフォーム済み、次回更新時に再交渉予定"></textarea>
-      </div>
+<div class="card"><h2>外観写真</h2>
+ <input id="photoInput" type="file" accept="image/*">
+ <img id="photoPreview" class="photo-preview" alt="外観写真">
+ <div class="btnrow" style="margin-top:8px"><button type="button" class="danger" id="removePhoto">写真を削除</button></div>
+ <p class="small">端末内に保存しやすいよう、自動で画像を縮小します。</p>
+</div>
 
-      <div class="btnrow">
-        <button type="submit" class="primary">保存</button>
-        <button type="button" class="secondary" id="resetForm">入力をクリア</button>
-      </div>
-    </form>
-  </section>
+<div class="card"><h2>メモ</h2><textarea id="memo" placeholder="更新料なし、リフォーム済み、次回更新時に再交渉など"></textarea></div>
+<div class="btnrow"><button type="submit" class="primary">保存</button><button type="button" class="secondary" id="resetForm">入力をクリア</button></div>
+</form>
+</section>
 </main>
+<button class="fab" id="fab">＋</button>
 
-<button class="fab" id="fab" aria-label="新規登録">＋</button>
-
-<dialog id="ioDialog">
-  <div class="dialog-head">
-    <h3>データ管理</h3>
-    <button class="close" id="closeIo">×</button>
-  </div>
-  <div class="dialog-body">
-    <p class="small">機種変更やブラウザのデータ削除に備えて、定期的にバックアップしてください。</p>
-    <div class="io">
-      <button class="secondary" id="exportBtn">バックアップを書き出す</button>
-      <button class="secondary" id="importBtn">バックアップを読み込む</button>
-    </div>
-    <input type="file" id="importFile" accept=".json,application/json" hidden />
-    <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
-    <button class="danger" id="deleteAll">全データ削除</button>
-  </div>
-</dialog>
-
-<dialog id="detailDialog">
-  <div class="dialog-head">
-    <h3>物件詳細</h3>
-    <button class="close" id="closeDetail">×</button>
-  </div>
-  <div class="dialog-body" id="detailBody"></div>
-  <div class="dialog-actions">
-    <button class="danger" id="deleteOne">削除</button>
-    <button class="primary" id="editOne">編集</button>
-  </div>
-</dialog>
+<dialog id="detailDialog"><div class="dialog-head"><h3>物件詳細</h3><button class="close" id="closeDetail">×</button></div><div class="dialog-body" id="detailBody"></div><div class="dialog-actions"><button class="danger" id="deleteOne">削除</button><button class="primary" id="editOne">編集</button></div></dialog>
+<dialog id="versionDialog"><div class="dialog-head"><h3>アップデート履歴</h3><button class="close" id="closeVersion">×</button></div><div class="dialog-body">
+ <div class="update"><strong>v2.0.0</strong>路線・駅の選択入力、建築年次と築年数自動計算、間取り連動の面積入力、家賃履歴、賃貸条件、外観写真、検索専用画面を追加。</div>
+ <div class="update"><strong>v1.0.0</strong>賃料・値上げ額・坪単価の記録、メモ、複数条件検索、バックアップ機能を追加。</div>
+</div></dialog>
+<dialog id="ioDialog"><div class="dialog-head"><h3>データ管理</h3><button class="close" id="closeIo">×</button></div><div class="dialog-body">
+ <p class="small">機種変更やブラウザデータ削除に備えてバックアップしてください。</p>
+ <div class="btnrow"><button class="secondary" id="exportBtn">書き出す</button><button class="secondary" id="importBtn">読み込む</button></div>
+ <input id="importFile" type="file" accept=".json,application/json" hidden><hr><button class="danger" id="deleteAll">全データ削除</button>
+</div></dialog>
 
 <script>
-const VERSION = "1.0.0";
-const STORAGE_KEY = "rentHistoryRecords_v1";
-let records = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-let selectedId = null;
+const VERSION="2.0.0", KEY="rentHistoryRecords_v2", OLD_KEY="rentHistoryRecords_v1";
+const $=id=>document.getElementById(id), money=n=>Number(n||0).toLocaleString("ja-JP");
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+const FEATURES=["オートロック","エレベーター","バストイレ別","独立洗面台","宅配ボックス","ペット可","楽器可","駐車場","駐輪場"];
 
-const $ = id => document.getElementById(id);
-const money = n => Number(n || 0).toLocaleString("ja-JP");
-const esc = s => String(s ?? "").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+const LINES={
+"西武池袋線":["池袋","椎名町","東長崎","江古田","桜台","練馬","中村橋","富士見台","練馬高野台","石神井公園","大泉学園","保谷","ひばりヶ丘","東久留米","清瀬","秋津","所沢"],
+"西武新宿線":["西武新宿","高田馬場","下落合","中井","新井薬師前","沼袋","野方","都立家政","鷺ノ宮","下井草","井荻","上井草","上石神井","武蔵関","東伏見","西武柳沢","田無","花小金井","小平"],
+"西武有楽町線":["小竹向原","新桜台","練馬"],
+"西武豊島線":["練馬","豊島園"],
+"都営大江戸線":["新宿西口","東新宿","若松河田","牛込柳町","牛込神楽坂","飯田橋","春日","本郷三丁目","上野御徒町","新御徒町","蔵前","両国","森下","清澄白河","門前仲町","月島","勝どき","築地市場","汐留","大門","赤羽橋","麻布十番","六本木","青山一丁目","国立競技場","代々木","新宿","都庁前","西新宿五丁目","中野坂上","東中野","中井","落合南長崎","新江古田","練馬","豊島園","練馬春日町","光が丘"],
+"東京メトロ有楽町線":["和光市","地下鉄成増","地下鉄赤塚","平和台","氷川台","小竹向原","千川","要町","池袋","東池袋","護国寺","江戸川橋","飯田橋","市ケ谷","麹町","永田町","桜田門","有楽町","銀座一丁目","新富町","月島","豊洲","辰巳","新木場"],
+"東京メトロ副都心線":["和光市","地下鉄成増","地下鉄赤塚","平和台","氷川台","小竹向原","千川","要町","池袋","雑司が谷","西早稲田","東新宿","新宿三丁目","北参道","明治神宮前","渋谷"],
+"JR中央線":["東京","神田","御茶ノ水","四ツ谷","新宿","中野","高円寺","阿佐ケ谷","荻窪","西荻窪","吉祥寺","三鷹","武蔵境","東小金井","武蔵小金井","国分寺","西国分寺","国立","立川"],
+"JR総武線":["三鷹","吉祥寺","西荻窪","荻窪","阿佐ケ谷","高円寺","中野","東中野","大久保","新宿","代々木","千駄ケ谷","信濃町","四ツ谷","市ケ谷","飯田橋","水道橋","御茶ノ水","秋葉原","浅草橋","両国","錦糸町"],
+"JR山手線":["池袋","目白","高田馬場","新大久保","新宿","代々木","原宿","渋谷","恵比寿","目黒","五反田","大崎","品川","高輪ゲートウェイ","田町","浜松町","新橋","有楽町","東京","神田","秋葉原","御徒町","上野","鶯谷","日暮里","西日暮里","田端","駒込","巣鴨","大塚"],
+"東武東上線":["池袋","北池袋","下板橋","大山","中板橋","ときわ台","上板橋","東武練馬","下赤塚","成増","和光市","朝霞","朝霞台","志木"],
+"東京メトロ丸ノ内線":["池袋","新大塚","茗荷谷","後楽園","本郷三丁目","御茶ノ水","淡路町","大手町","東京","銀座","霞ケ関","国会議事堂前","赤坂見附","四ツ谷","四谷三丁目","新宿御苑前","新宿三丁目","新宿","西新宿","中野坂上","新中野","東高円寺","新高円寺","南阿佐ケ谷","荻窪"],
+"京王井の頭線":["渋谷","神泉","駒場東大前","池ノ上","下北沢","新代田","東松原","明大前","永福町","西永福","浜田山","高井戸","富士見ヶ丘","久我山","三鷹台","井の頭公園","吉祥寺"],
+"その他":[]
+};
+const LAYOUTS=["ワンルーム","1K","1DK","1LDK","2K","2DK","2LDK","3K","3DK","3LDK","4DK","4LDK","5LDK以上","店舗","事務所","その他"];
+const AREA_DEFAULT={"ワンルーム":20,"1K":25,"1DK":30,"1LDK":40,"2K":35,"2DK":45,"2LDK":55,"3K":50,"3DK":60,"3LDK":70,"4DK":75,"4LDK":85,"5LDK以上":100,"店舗":50,"事務所":50,"その他":50};
 
-function saveRecords(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+let records=JSON.parse(localStorage.getItem(KEY)||"null");
+if(!records){
+ const old=JSON.parse(localStorage.getItem(OLD_KEY)||"[]");
+ records=old.map(r=>({
+  ...r, lineChoice:r.line||"", stationChoice:r.station||"", builtYearValue:"",
+  builtYearLabel:r.built||"", ageExact:r.age||0, ageAtLeast:false,
+  layoutChoice:r.layout||"", features:[], photo:"",
+  rentHistory:[{id:crypto.randomUUID(),revisionMonth:r.revisionMonth||"",oldRent:r.oldRent||0,newRent:r.rent||0}],
+  updatedAt:r.updatedAt||new Date().toISOString()
+ }));
+ localStorage.setItem(KEY,JSON.stringify(records));
 }
-function calc(){
-  const sqm = Number($("sqm").value || 0);
-  const tsubo = sqm / 3.305785;
-  const oldRent = Number($("oldRent").value || 0);
-  const rent = Number($("rent").value || 0);
-  const raise = rent - oldRent;
-  $("tsubo").value = tsubo ? tsubo.toFixed(2) : "";
-  $("rentPerTsubo").value = tsubo && rent ? Math.round(rent / tsubo) : "";
-  $("raiseAmount").value = oldRent && rent ? raise : "";
-  $("raisePerTsubo").value = oldRent && rent && tsubo ? Math.round(raise / tsubo) : "";
-  $("raiseRate").value = oldRent && rent ? ((raise / oldRent) * 100).toFixed(1) : "";
-}
-["sqm","oldRent","rent"].forEach(id => $(id).addEventListener("input", calc));
+let selectedId=null, photoData="", areaMode="spinner";
 
+function optionHTML(arr,first="選択"){return `<option value="">${first}</option>`+arr.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join("")}
+function initOptions(){
+ $("line").innerHTML=optionHTML(Object.keys(LINES)); $("fLine").innerHTML=optionHTML(Object.keys(LINES),"すべて");
+ $("layout").innerHTML=optionHTML(LAYOUTS); $("fLayout").innerHTML=optionHTML(LAYOUTS,"すべて");
+ $("sqmWhole").innerHTML=Array.from({length:191},(_,i)=>i+10).map(n=>`<option>${n}</option>`).join("");
+ $("sqmDecimal").innerHTML=Array.from({length:100},(_,i)=>String(i).padStart(2,"0")).map(n=>`<option>${n}</option>`).join("");
+ const years=[`<option value="">選択</option>`,`<option value="before1964">昭和39年以前</option>`];
+ for(let y=1965;y<=new Date().getFullYear();y++){
+  let label=y<=1988?`昭和${y-1925}年`:y===1989?"平成元年":y<=2018?`平成${y-1988}年`:y===2019?"令和元年":`令和${y-2018}年`;
+  years.push(`<option value="${y}">${label}</option>`);
+ }
+ $("builtYear").innerHTML=years.join("");
+ $("featureChecks").innerHTML=FEATURES.map(f=>`<label class="check"><input type="checkbox" name="feature" value="${f}">${f}</label>`).join("");
+ $("filterFeatures").innerHTML=FEATURES.map(f=>`<label class="check"><input type="checkbox" name="filterFeature" value="${f}">${f}</label>`).join("");
+}
+function setStations(lineEl,stationEl,current=""){
+ const line=lineEl.value, stations=LINES[line]||[];
+ stationEl.innerHTML=optionHTML(stations.concat(line==="その他"?["その他"]:["その他"]));
+ if(current && [...stationEl.options].some(o=>o.value===current)) stationEl.value=current;
+}
 function switchTab(id){
-  document.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b.dataset.tab === id));
-  document.querySelectorAll(".panel").forEach(p => p.classList.toggle("active", p.id === id));
-  $("fab").style.display = id === "listPanel" ? "block" : "none";
-  if(id === "addPanel") window.scrollTo({top:0,behavior:"smooth"});
+ document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===id));
+ document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("active",p.id===id));
+ $("fab").style.display=id==="listPanel"?"block":"none";
+ window.scrollTo({top:0,behavior:"smooth"});
 }
-document.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => switchTab(b.dataset.tab)));
-$("fab").addEventListener("click", () => { resetForm(); switchTab("addPanel"); });
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+$("fab").onclick=()=>{resetForm();switchTab("formPanel")};
 
-function formData(){
-  return {
-    id: $("recordId").value || crypto.randomUUID(),
-    owner: $("owner").value.trim(),
-    building: $("building").value.trim(),
-    line: $("line").value.trim(),
-    station: $("station").value.trim(),
-    walk: Number($("walk").value || 0),
-    built: $("built").value.trim(),
-    age: Number($("age").value || 0),
-    structure: $("structure").value,
-    layout: $("layout").value.trim(),
-    sqm: Number($("sqm").value || 0),
-    tsubo: Number($("tsubo").value || 0),
-    oldRent: Number($("oldRent").value || 0),
-    rent: Number($("rent").value || 0),
-    rentPerTsubo: Number($("rentPerTsubo").value || 0),
-    raiseAmount: Number($("raiseAmount").value || 0),
-    raisePerTsubo: Number($("raisePerTsubo").value || 0),
-    raiseRate: Number($("raiseRate").value || 0),
-    revisionMonth: $("revisionMonth").value,
-    memo: $("memo").value.trim(),
-    updatedAt: new Date().toISOString()
-  };
+$("line").onchange=()=>{setStations($("line"),$("station"));$("otherLineWrap").style.display=$("line").value==="その他"?"block":"none"};
+$("station").onchange=()=>{$("otherStationWrap").style.display=$("station").value==="その他"?"block":"none"};
+$("fLine").onchange=()=>{setStations($("fLine"),$("fStation"));renderSearch()};
+$("layout").onchange=()=>{
+ $("otherLayoutWrap").style.display=$("layout").value==="その他"?"block":"none";
+ const d=AREA_DEFAULT[$("layout").value]; if(d){$("sqmWhole").value=d;$("sqmDecimal").value="50";syncArea()}
+};
+$("builtYear").onchange=updateAge;
+function updateAge(){
+ const v=$("builtYear").value, current=new Date().getFullYear();
+ if(v==="before1964") $("ageDisplay").value=`築${current-1964}年以上`;
+ else if(v) $("ageDisplay").value=`築${current-Number(v)}年`;
+ else $("ageDisplay").value="";
 }
-$("rentForm").addEventListener("submit", e => {
-  e.preventDefault();
-  calc();
-  const data = formData();
-  const idx = records.findIndex(r => r.id === data.id);
-  if(idx >= 0) records[idx] = data; else records.unshift(data);
-  saveRecords();
-  render();
-  resetForm();
-  switchTab("listPanel");
-  alert("保存しました");
-});
+function syncArea(){
+ let sqm=areaMode==="manual"?Number($("sqmManual").value||0):Number(`${$("sqmWhole").value}.${$("sqmDecimal").value}`);
+ $("sqm").value=sqm?sqm.toFixed(2):"";$("tsubo").value=sqm?(sqm/3.305785).toFixed(2):"";
+}
+["sqmWhole","sqmDecimal"].forEach(id=>$(id).onchange=syncArea);$("sqmManual").oninput=syncArea;
+$("useSpinner").onclick=()=>{areaMode="spinner";$("spinnerArea").style.display="block";$("manualArea").style.display="none";syncArea()};
+$("useManual").onclick=()=>{areaMode="manual";$("manualArea").style.display="block";$("spinnerArea").style.display="none";$("sqmManual").value=$("sqm").value;syncArea()};
 
+function addHistoryRow(data={revisionMonth:"",oldRent:"",newRent:""}){
+ const id=data.id||crypto.randomUUID(), div=document.createElement("div");div.className="rent-history-row";div.dataset.id=id;
+ div.innerHTML=`<div class="history-title"><span>家賃改定</span><button type="button" class="danger remove-history">削除</button></div>
+ <div class="grid"><div><label>改定年月</label><input class="hMonth" type="month" value="${esc(data.revisionMonth||"")}"></div>
+ <div><label>改定前家賃（円）</label><input class="hOld" type="number" min="0" value="${data.oldRent||""}"></div>
+ <div><label>改定後家賃（円）*</label><input class="hNew" type="number" min="0" value="${data.newRent||""}"></div>
+ <div><label>値上げ額</label><input class="hRaise readonly" readonly></div>
+ <div><label>坪単価</label><input class="hTsubo readonly" readonly></div>
+ <div><label>坪当たり値上げ</label><input class="hRaiseTsubo readonly" readonly></div></div>`;
+ $("rentHistoryRows").appendChild(div);
+ div.querySelector(".remove-history").onclick=()=>{if(document.querySelectorAll(".rent-history-row").length>1)div.remove();else alert("家賃履歴は1件以上必要です")};
+ div.querySelectorAll(".hOld,.hNew").forEach(i=>i.oninput=calcHistory);calcHistory();
+}
+function calcHistory(){
+ const t=Number($("tsubo").value||0);
+ document.querySelectorAll(".rent-history-row").forEach(row=>{
+  const old=Number(row.querySelector(".hOld").value||0),nw=Number(row.querySelector(".hNew").value||0),raise=nw-old;
+  row.querySelector(".hRaise").value=old&&nw?raise:"";
+  row.querySelector(".hTsubo").value=t&&nw?Math.round(nw/t):"";
+  row.querySelector(".hRaiseTsubo").value=t&&old&&nw?Math.round(raise/t):"";
+ });
+}
+$("addHistory").onclick=()=>addHistoryRow({revisionMonth:new Date().toISOString().slice(0,7)});
+$("sqmWhole").addEventListener("change",calcHistory);$("sqmDecimal").addEventListener("change",calcHistory);$("sqmManual").addEventListener("input",calcHistory);
+
+$("photoInput").onchange=async e=>{
+ const file=e.target.files[0];if(!file)return;
+ const img=new Image(),url=URL.createObjectURL(file);
+ img.onload=()=>{
+  const max=900,scale=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement("canvas");
+  c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+  photoData=c.toDataURL("image/jpeg",.72);$("photoPreview").src=photoData;$("photoPreview").style.display="block";URL.revokeObjectURL(url)
+ };img.src=url
+};
+$("removePhoto").onclick=()=>{photoData="";$("photoPreview").src="";$("photoPreview").style.display="none";$("photoInput").value=""};
+
+function getHistory(){
+ return [...document.querySelectorAll(".rent-history-row")].map(row=>({
+  id:row.dataset.id,revisionMonth:row.querySelector(".hMonth").value,
+  oldRent:Number(row.querySelector(".hOld").value||0),newRent:Number(row.querySelector(".hNew").value||0)
+ })).filter(h=>h.newRent);
+}
+function normalizedHistory(r){return [...(r.rentHistory||[])].sort((a,b)=>(b.revisionMonth||"").localeCompare(a.revisionMonth||""))}
+function latest(r){return normalizedHistory(r)[0]||{oldRent:0,newRent:0,revisionMonth:""}}
+function metrics(r){
+ const h=latest(r),t=Number(r.tsubo||0),raise=h.newRent-h.oldRent;
+ return {rent:h.newRent,old:h.oldRent,raise,perTsubo:t&&h.newRent?Math.round(h.newRent/t):0,raisePerTsubo:t&&h.oldRent?Math.round(raise/t):0}
+}
+function save(){localStorage.setItem(KEY,JSON.stringify(records))}
+$("propertyForm").onsubmit=e=>{
+ e.preventDefault();syncArea();const hist=getHistory();if(!hist.length){alert("改定後家賃を入力してください");return}
+ const lineChoice=$("line").value,stationChoice=$("station").value,layoutChoice=$("layout").value,bv=$("builtYear").value,current=new Date().getFullYear();
+ const data={
+  id:$("recordId").value||crypto.randomUUID(),owner:$("owner").value.trim(),building:$("building").value.trim(),
+  lineChoice,line:lineChoice==="その他"?$("otherLine").value.trim():lineChoice,
+  stationChoice,station:stationChoice==="その他"?$("otherStation").value.trim():stationChoice,
+  walk:Number($("walk").value||0),builtYearValue:bv,builtYearLabel:$("builtYear").selectedOptions[0]?.text||"",
+  ageExact:bv&&bv!=="before1964"?current-Number(bv):current-1964,ageAtLeast:bv==="before1964",
+  structure:$("structure").value,layoutChoice,layout:layoutChoice==="その他"?$("otherLayout").value.trim():layoutChoice,
+  sqm:Number($("sqm").value||0),tsubo:Number($("tsubo").value||0),rentHistory:hist,
+  features:[...document.querySelectorAll('input[name="feature"]:checked')].map(x=>x.value),
+  photo:photoData,memo:$("memo").value.trim(),updatedAt:new Date().toISOString()
+ };
+ const i=records.findIndex(r=>r.id===data.id);if(i>=0)records[i]=data;else records.unshift(data);
+ try{save()}catch(err){alert("写真の容量が大きく保存できませんでした。写真を削除するか小さい画像で試してください。");return}
+ renderAll();renderSearch();resetForm();switchTab("listPanel");alert("保存しました")
+};
+
+function card(r){
+ const m=metrics(r),age=r.ageAtLeast?`築${r.ageExact}年以上`:r.ageExact?`築${r.ageExact}年`:"";
+ return `<div class="item" onclick="openDetail('${r.id}')"><div class="item-top"><div><div class="owner">${esc(r.owner)}</div><div class="building">${esc(r.building||"建物名未入力")}</div></div><div class="rent">${money(m.rent)}円</div></div>
+ <div class="meta">${r.line||r.station?`<span class="badge">${esc([r.line,r.station].filter(Boolean).join(" "))}${r.walk?` 徒歩${r.walk}分`:""}</span>`:""}
+ ${r.structure?`<span class="badge">${esc(r.structure)}</span>`:""}${r.layout?`<span class="badge">${esc(r.layout)}</span>`:""}${age?`<span class="badge">${age}</span>`:""}<br>
+ ${r.sqm?`${r.sqm.toFixed(2)}㎡（${r.tsubo.toFixed(2)}坪）`:""}${m.perTsubo?`・坪単価 ${money(m.perTsubo)}円`:""}${m.raise?`・直近値上げ ${m.raise>0?"+":""}${money(m.raise)}円`:""}</div>
+ ${(r.features||[]).map(f=>`<span class="badge">${esc(f)}</span>`).join("")}${r.memo?`<div class="memo">${esc(r.memo)}</div>`:""}</div>`
+}
+function renderAll(){
+ const arr=[...records].sort((a,b)=>new Date(b.updatedAt)-new Date(a.updatedAt));$("listCount").textContent=`全${arr.length}件`;
+ $("allList").innerHTML=arr.length?arr.map(card).join(""):`<div class="empty">まだ物件が登録されていません</div>`
+}
+function filtered(){
+ const q=$("q").value.trim().toLowerCase(),line=$("fLine").value,station=$("fStation").value,structure=$("fStructure").value,layout=$("fLayout").value;
+ const walk=Number($("fWalkMax").value||0),amin=Number($("fAgeMin").value||0),amax=Number($("fAgeMax").value||0),rmin=Number($("fRentMin").value||0),rmax=Number($("fRentMax").value||0),tmin=Number($("fTsuboMin").value||0);
+ const raiseRaw=$("fRaiseMin").value,raiseMin=raiseRaw===""?null:Number(raiseRaw),features=[...document.querySelectorAll('input[name="filterFeature"]:checked')].map(x=>x.value);
+ let arr=records.filter(r=>{const m=metrics(r),text=[r.owner,r.building,r.line,r.station,r.structure,r.layout,r.memo].join(" ").toLowerCase();
+  return(!q||text.includes(q))&&(!line||r.lineChoice===line||r.line===line)&&(!station||r.stationChoice===station||r.station===station)&&(!structure||r.structure===structure)&&(!layout||r.layoutChoice===layout||r.layout===layout)
+  &&(!walk||r.walk<=walk)&&(!amin||r.ageExact>=amin)&&(!amax||(!r.ageAtLeast&&r.ageExact<=amax))&&(!rmin||m.rent>=rmin)&&(!rmax||m.rent<=rmax)&&(!tmin||m.perTsubo>=tmin)&&(raiseMin===null||m.raise>=raiseMin)
+  &&features.every(f=>(r.features||[]).includes(f))
+ });
+ const s=$("sortBy").value;arr.sort((a,b)=>s==="rentDesc"?metrics(b).rent-metrics(a).rent:s==="tsuboDesc"?metrics(b).perTsubo-metrics(a).perTsubo:s==="raiseDesc"?metrics(b).raise-metrics(a).raise:s==="walkAsc"?a.walk-b.walk:new Date(b.updatedAt)-new Date(a.updatedAt));return arr
+}
+function renderSearch(){const arr=filtered();$("searchCount").textContent=`${arr.length}件表示 / 全${records.length}件`;$("searchList").innerHTML=arr.length?arr.map(card).join(""):`<div class="empty">該当する物件がありません</div>`}
+["q","fStation","fStructure","fLayout","fWalkMax","fAgeMin","fAgeMax","fRentMin","fRentMax","fTsuboMin","fRaiseMin","sortBy"].forEach(id=>{$(id).oninput=renderSearch;$(id).onchange=renderSearch});
+document.querySelectorAll('input[name="filterFeature"]').forEach(x=>x.onchange=renderSearch);
+$("clearFilters").onclick=()=>{["q","fLine","fStation","fStructure","fLayout","fWalkMax","fAgeMin","fAgeMax","fRentMin","fRentMax","fTsuboMin","fRaiseMin"].forEach(id=>$(id).value="");$("sortBy").value="new";document.querySelectorAll('input[name="filterFeature"]').forEach(x=>x.checked=false);renderSearch()};
+
+window.openDetail=id=>{
+ selectedId=id;const r=records.find(x=>x.id===id);if(!r)return;const m=metrics(r),age=r.ageAtLeast?`築${r.ageExact}年以上`:r.ageExact?`築${r.ageExact}年`:"未入力";
+ const hist=normalizedHistory(r).map(h=>{const raise=h.newRent-h.oldRent,t=r.tsubo||0;return `<div class="rent-history-row"><strong>${esc(h.revisionMonth||"年月未入力")}</strong><div class="meta">改定前 ${h.oldRent?money(h.oldRent)+"円":"未入力"} → 改定後 ${money(h.newRent)}円<br>値上げ ${raise>0?"+":""}${money(raise)}円・坪単価 ${t?money(Math.round(h.newRent/t))+"円":"未計算"}</div></div>`}).join("");
+ $("detailBody").innerHTML=`${r.photo?`<img class="detail-photo" src="${r.photo}">`:""}<div class="owner">${esc(r.owner)}　${esc(r.building||"")}</div><div class="meta" style="margin-top:12px">
+ 路線・駅：${esc([r.line,r.station].filter(Boolean).join(" ")||"未入力")} ${r.walk?`（徒歩${r.walk}分）`:""}<br>建築年次：${esc(r.builtYearLabel||"未入力")}（${age}）<br>構造：${esc(r.structure||"未入力")}<br>間取り：${esc(r.layout||"未入力")}<br>面積：${r.sqm?`${r.sqm.toFixed(2)}㎡（${r.tsubo.toFixed(2)}坪）`:"未入力"}<br>現在家賃：${money(m.rent)}円<br>現在坪単価：${money(m.perTsubo)}円</div>
+ ${(r.features||[]).length?`<div class="subhead">賃貸条件</div>${r.features.map(f=>`<span class="badge">${esc(f)}</span>`).join("")}`:""}<div class="subhead">家賃履歴</div>${hist}${r.memo?`<div class="subhead">メモ</div><div class="memo">${esc(r.memo)}</div>`:""}`;
+ $("detailDialog").showModal()
+};
+$("closeDetail").onclick=()=>$("detailDialog").close();
+$("deleteOne").onclick=()=>{if(confirm("この物件を削除しますか？")){records=records.filter(r=>r.id!==selectedId);save();renderAll();renderSearch();$("detailDialog").close()}};
+$("editOne").onclick=()=>{
+ const r=records.find(x=>x.id===selectedId);if(!r)return;resetForm();$("recordId").value=r.id;$("owner").value=r.owner||"";$("building").value=r.building||"";
+ $("line").value=r.lineChoice||([...Object.keys(LINES)].includes(r.line)?r.line:"その他");$("line").onchange();if($("line").value==="その他")$("otherLine").value=r.line||"";
+ setStations($("line"),$("station"),r.stationChoice||r.station);if(![...$("station").options].some(o=>o.value===(r.stationChoice||r.station)))$("station").value="その他";$("station").onchange();if($("station").value==="その他")$("otherStation").value=r.station||"";
+ $("walk").value=r.walk||"";$("builtYear").value=r.builtYearValue||"";updateAge();$("structure").value=r.structure||"";$("layout").value=r.layoutChoice||([...LAYOUTS].includes(r.layout)?r.layout:"その他");$("layout").onchange();if($("layout").value==="その他")$("otherLayout").value=r.layout||"";
+ const parts=Number(r.sqm||0).toFixed(2).split(".");$("sqmWhole").value=parts[0];$("sqmDecimal").value=parts[1];areaMode="spinner";$("spinnerArea").style.display="block";$("manualArea").style.display="none";syncArea();
+ $("rentHistoryRows").innerHTML="";(r.rentHistory||[]).forEach(addHistoryRow);if(!(r.rentHistory||[]).length)addHistoryRow();document.querySelectorAll('input[name="feature"]').forEach(x=>x.checked=(r.features||[]).includes(x.value));
+ photoData=r.photo||"";if(photoData){$("photoPreview").src=photoData;$("photoPreview").style.display="block"}$("memo").value=r.memo||"";$("detailDialog").close();switchTab("formPanel")
+};
 function resetForm(){
-  $("rentForm").reset();
-  $("recordId").value = "";
-  ["tsubo","rentPerTsubo","raiseAmount","raisePerTsubo","raiseRate"].forEach(id => $(id).value = "");
-  $("revisionMonth").value = new Date().toISOString().slice(0,7);
+ $("propertyForm").reset();$("recordId").value="";$("otherLineWrap").style.display="none";$("otherStationWrap").style.display="none";$("otherLayoutWrap").style.display="none";$("ageDisplay").value="";
+ $("sqmWhole").value="50";$("sqmDecimal").value="50";areaMode="spinner";$("spinnerArea").style.display="block";$("manualArea").style.display="none";syncArea();$("rentHistoryRows").innerHTML="";addHistoryRow({revisionMonth:new Date().toISOString().slice(0,7)});
+ photoData="";$("photoPreview").src="";$("photoPreview").style.display="none";$("photoInput").value=""
 }
-$("resetForm").addEventListener("click", resetForm);
+$("resetForm").onclick=resetForm;
+$("versionBtn").onclick=()=>$("versionDialog").showModal();$("closeVersion").onclick=()=>$("versionDialog").close();
+$("openIo").onclick=()=>$("ioDialog").showModal();$("closeIo").onclick=()=>$("ioDialog").close();
+$("exportBtn").onclick=()=>{const blob=new Blob([JSON.stringify({version:VERSION,exportedAt:new Date().toISOString(),records},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`賃料履歴バックアップ_${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(a.href)};
+$("importBtn").onclick=()=>$("importFile").click();$("importFile").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const o=JSON.parse(await f.text()),incoming=Array.isArray(o)?o:o.records;if(!Array.isArray(incoming))throw 0;if(confirm(`${incoming.length}件のデータで置き換えますか？`)){records=incoming;save();renderAll();renderSearch();$("ioDialog").close()}}catch{alert("読み込めないファイルです")}e.target.value=""};
+$("deleteAll").onclick=()=>{if(confirm("全データを削除します。元に戻せません。")){records=[];save();renderAll();renderSearch();$("ioDialog").close()}};
 
-const filterIds = ["q","fStructure","fLayout","fWalkMax","fAgeMin","fAgeMax","fRentMin","fRentMax","fTsuboMin","fRaiseMin","sortBy"];
-filterIds.forEach(id => $(id).addEventListener("input", render));
-filterIds.forEach(id => $(id).addEventListener("change", render));
-
-function filteredRecords(){
-  const q = $("q").value.trim().toLowerCase();
-  const structure = $("fStructure").value;
-  const layout = $("fLayout").value.trim().toLowerCase();
-  const walkMax = Number($("fWalkMax").value || 0);
-  const ageMin = Number($("fAgeMin").value || 0);
-  const ageMax = Number($("fAgeMax").value || 0);
-  const rentMin = Number($("fRentMin").value || 0);
-  const rentMax = Number($("fRentMax").value || 0);
-  const tsuboMin = Number($("fTsuboMin").value || 0);
-  const raiseMinRaw = $("fRaiseMin").value;
-  const raiseMin = raiseMinRaw === "" ? null : Number(raiseMinRaw);
-
-  let arr = records.filter(r => {
-    const text = [r.owner,r.building,r.line,r.station,r.structure,r.layout,r.memo,r.built].join(" ").toLowerCase();
-    return (!q || text.includes(q))
-      && (!structure || r.structure === structure)
-      && (!layout || (r.layout || "").toLowerCase().includes(layout))
-      && (!walkMax || r.walk <= walkMax)
-      && (!ageMin || r.age >= ageMin)
-      && (!ageMax || r.age <= ageMax)
-      && (!rentMin || r.rent >= rentMin)
-      && (!rentMax || r.rent <= rentMax)
-      && (!tsuboMin || r.rentPerTsubo >= tsuboMin)
-      && (raiseMin === null || r.raiseAmount >= raiseMin);
-  });
-
-  const sort = $("sortBy").value;
-  arr.sort((a,b) => {
-    if(sort === "rentDesc") return b.rent - a.rent;
-    if(sort === "tsuboDesc") return b.rentPerTsubo - a.rentPerTsubo;
-    if(sort === "raiseDesc") return b.raiseAmount - a.raiseAmount;
-    if(sort === "walkAsc") return a.walk - b.walk;
-    return new Date(b.updatedAt) - new Date(a.updatedAt);
-  });
-  return arr;
-}
-
-function render(){
-  const arr = filteredRecords();
-  $("resultCount").textContent = `${arr.length}件表示 / 全${records.length}件`;
-  if(!arr.length){
-    $("list").innerHTML = `<div class="empty">該当する物件がありません</div>`;
-    return;
-  }
-  $("list").innerHTML = arr.map(r => `
-    <div class="item" onclick="openDetail('${r.id}')">
-      <div class="item-top">
-        <div>
-          <div class="owner">${esc(r.owner)}</div>
-          <div class="building">${esc(r.building || "建物名未入力")}</div>
-        </div>
-        <div class="rent">${money(r.rent)}円</div>
-      </div>
-      <div class="meta">
-        ${r.line || r.station ? `<span class="badge">${esc([r.line,r.station].filter(Boolean).join(" "))}${r.walk ? ` 徒歩${r.walk}分` : ""}</span>` : ""}
-        ${r.structure ? `<span class="badge">${esc(r.structure)}</span>` : ""}
-        ${r.layout ? `<span class="badge">${esc(r.layout)}</span>` : ""}
-        <br>
-        ${r.sqm ? `${r.sqm}㎡（${r.tsubo.toFixed(2)}坪）` : ""}
-        ${r.rentPerTsubo ? `・坪単価 ${money(r.rentPerTsubo)}円` : ""}
-        ${r.raiseAmount ? `・値上げ +${money(r.raiseAmount)}円（坪 +${money(r.raisePerTsubo)}円）` : ""}
-      </div>
-      ${r.memo ? `<div class="memo">${esc(r.memo)}</div>` : ""}
-    </div>
-  `).join("");
-}
-$("clearFilters").addEventListener("click", () => {
-  ["q","fStructure","fLayout","fWalkMax","fAgeMin","fAgeMax","fRentMin","fRentMax","fTsuboMin","fRaiseMin"].forEach(id => $(id).value = "");
-  $("sortBy").value = "new";
-  render();
-});
-
-window.openDetail = function(id){
-  selectedId = id;
-  const r = records.find(x => x.id === id);
-  if(!r) return;
-  $("detailBody").innerHTML = `
-    <div class="owner">${esc(r.owner)}　${esc(r.building || "")}</div>
-    <div class="meta" style="margin-top:12px">
-      路線・駅：${esc([r.line,r.station].filter(Boolean).join(" ") || "未入力")} ${r.walk ? `（徒歩${r.walk}分）` : ""}<br>
-      築年月：${esc(r.built || "未入力")} ${r.age ? `（築${r.age}年）` : ""}<br>
-      構造：${esc(r.structure || "未入力")}<br>
-      間取り：${esc(r.layout || "未入力")}<br>
-      面積：${r.sqm ? `${r.sqm}㎡（${r.tsubo.toFixed(2)}坪）` : "未入力"}<br><br>
-      改定前家賃：${r.oldRent ? `${money(r.oldRent)}円` : "未入力"}<br>
-      現在家賃：${money(r.rent)}円<br>
-      坪単価：${r.rentPerTsubo ? `${money(r.rentPerTsubo)}円` : "未計算"}<br>
-      値上げ額：${r.raiseAmount ? `${r.raiseAmount>0?"+":""}${money(r.raiseAmount)}円` : "なし／未入力"}<br>
-      坪当たり値上げ額：${r.raisePerTsubo ? `${r.raisePerTsubo>0?"+":""}${money(r.raisePerTsubo)}円` : "なし／未入力"}<br>
-      値上げ率：${r.raiseRate ? `${r.raiseRate}%` : "なし／未入力"}<br>
-      改定年月：${esc(r.revisionMonth || "未入力")}
-    </div>
-    ${r.memo ? `<div class="memo" style="margin-top:14px">${esc(r.memo)}</div>` : ""}
-  `;
-  $("detailDialog").showModal();
-}
-$("closeDetail").addEventListener("click", () => $("detailDialog").close());
-$("editOne").addEventListener("click", () => {
-  const r = records.find(x => x.id === selectedId);
-  if(!r) return;
-  Object.entries(r).forEach(([k,v]) => { if($(k)) $(k).value = v ?? ""; });
-  $("detailDialog").close();
-  switchTab("addPanel");
-  calc();
-});
-$("deleteOne").addEventListener("click", () => {
-  if(!confirm("この物件を削除しますか？")) return;
-  records = records.filter(r => r.id !== selectedId);
-  saveRecords(); render(); $("detailDialog").close();
-});
-
-$("openIo").addEventListener("click", () => $("ioDialog").showModal());
-$("closeIo").addEventListener("click", () => $("ioDialog").close());
-$("exportBtn").addEventListener("click", () => {
-  const blob = new Blob([JSON.stringify({version:VERSION, exportedAt:new Date().toISOString(), records}, null, 2)], {type:"application/json"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = `賃料履歴バックアップ_${new Date().toISOString().slice(0,10)}.json`;
-  a.click();
-  URL.revokeObjectURL(a.href);
-});
-$("importBtn").addEventListener("click", () => $("importFile").click());
-$("importFile").addEventListener("change", async e => {
-  const file = e.target.files[0]; if(!file) return;
-  try{
-    const obj = JSON.parse(await file.text());
-    const incoming = Array.isArray(obj) ? obj : obj.records;
-    if(!Array.isArray(incoming)) throw new Error();
-    if(!confirm(`${incoming.length}件のデータで現在の内容を置き換えますか？`)) return;
-    records = incoming; saveRecords(); render(); $("ioDialog").close();
-  }catch{ alert("読み込めないファイルです"); }
-  e.target.value = "";
-});
-$("deleteAll").addEventListener("click", () => {
-  if(!confirm("全データを削除します。元に戻せません。")) return;
-  records = []; saveRecords(); render(); $("ioDialog").close();
-});
-
-resetForm();
-render();
-if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
+initOptions();setStations($("line"),$("station"));resetForm();renderAll();renderSearch();
+if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");
 </script>
-</body>
-</html>
+</body></html>
