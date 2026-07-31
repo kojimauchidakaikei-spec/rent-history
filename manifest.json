@@ -1,1 +1,9 @@
-{"name":"賃料履歴","short_name":"賃料履歴","start_url":"./index.html","display":"standalone","background_color":"#eef3f7","theme_color":"#294f75","icons":[]}
+{
+  "name": "賃料履歴",
+  "short_name": "賃料履歴",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#eef3f7",
+  "theme_color": "#294f75",
+  "icons": []
+}

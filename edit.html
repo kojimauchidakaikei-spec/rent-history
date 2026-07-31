@@ -1,19 +1,195 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#294f75"><link rel="stylesheet" href="style.css"><title>編集</title></head><body><header class="topbar"><a class="back" href="index.html">‹</a><h1>編集</h1><span class="version">v4.1.0</span></header><main class="wrap"><form id="recordForm" class="form-card"><input id="recordId" type="hidden">
-<section class="section-card"><h2>顧問先・建物</h2><div class="grid">
-<div class="field"><label for="owner">顧問先名 *</label><input id="owner" required autocomplete="off"></div>
-<div class="field"><label for="building">マンション名</label><input id="building" autocomplete="off"></div>
-<div class="field"><label for="lineChoice">路線</label><select id="lineChoice"></select></div>
-<div id="otherLineWrap" class="field hidden"><label for="otherLine">その他の路線</label><input id="otherLine"></div>
-<div class="field"><label for="stationChoice">最寄駅</label><select id="stationChoice"></select></div>
-<div id="otherStationWrap" class="field hidden"><label for="otherStation">その他の駅</label><input id="otherStation"></div>
-<div class="field"><label for="walk">徒歩（分）</label><input id="walk" type="number" min="0" inputmode="numeric"></div>
-<div class="field"><label for="builtYearValue">建築年次</label><select id="builtYearValue"></select></div>
-<div class="field"><label for="age">築年数（自動）</label><input id="age" readonly></div>
-<div class="field"><label for="structure">構造</label><select id="structure"></select></div>
-<div class="field"><label for="layoutChoice">間取り</label><select id="layoutChoice"></select></div>
-<div id="otherLayoutWrap" class="field hidden"><label for="otherLayout">その他の間取り</label><input id="otherLayout"></div>
-</div></section>
-<section class="section-card"><h2>面積</h2><div id="spinnerArea" class="area-grid"><div class="field"><label for="sqmWhole">整数部分</label><select id="sqmWhole"></select></div><div class="dot">.</div><div class="field"><label for="sqmDecimal">小数部分</label><select id="sqmDecimal"></select></div><div class="unit">㎡</div></div><div id="manualArea" class="field hidden"><label for="sqmManual">面積を直接入力（㎡）</label><input id="sqmManual" type="number" min="0" step="0.01" inputmode="decimal"></div><button id="toggleAreaModeBtn" class="btn mode-btn" type="button">手入力に切替</button><div class="grid" style="margin-top:10px"><div class="field"><label for="sqm">面積（㎡）</label><input id="sqm" readonly></div><div class="field"><label for="tsubo">面積（坪）</label><input id="tsubo" readonly></div></div></section>
-<section class="section-card"><h2>家賃履歴</h2><div id="rentHistoryRows"></div><button id="addHistoryBtn" class="btn secondary" type="button">＋ 履歴を追加</button><p class="small">最新年月の履歴が、一覧の現在家賃として表示されます。</p></section>
-<section class="section-card"><h2>メモ</h2><div class="field"><textarea id="memo"></textarea></div></section>
-<button class="btn save" type="submit">保存</button></form></main><script src="data.js"></script><script src="storage.js"></script><script src="form.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="ja">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
+  <meta content="#294f75" name="theme-color"/>
+  <link href="style.css" rel="stylesheet"/>
+  <title>
+   編集
+  </title>
+ </head>
+ <body>
+  <header class="topbar">
+   <a class="back" href="index.html">
+    ‹
+   </a>
+   <h1>
+    編集
+   </h1>
+   <span class="version">
+    v4.1.1
+   </span>
+  </header>
+  <main class="wrap">
+   <form class="form-card" id="recordForm">
+    <input id="recordId" type="hidden"/>
+    <section class="section-card">
+     <h2>
+      顧問先・建物
+     </h2>
+     <div class="grid">
+      <div class="field">
+       <label for="owner">
+        顧問先名 *
+       </label>
+       <input autocomplete="off" id="owner" required=""/>
+      </div>
+      <div class="field">
+       <label for="building">
+        マンション名
+       </label>
+       <input autocomplete="off" id="building"/>
+      </div>
+      <div class="field">
+       <label for="lineChoice">
+        路線
+       </label>
+       <select id="lineChoice">
+       </select>
+      </div>
+      <div class="field hidden" id="otherLineWrap">
+       <label for="otherLine">
+        その他の路線
+       </label>
+       <input id="otherLine"/>
+      </div>
+      <div class="field">
+       <label for="stationChoice">
+        最寄駅
+       </label>
+       <select id="stationChoice">
+       </select>
+      </div>
+      <div class="field hidden" id="otherStationWrap">
+       <label for="otherStation">
+        その他の駅
+       </label>
+       <input id="otherStation"/>
+      </div>
+      <div class="field">
+       <label for="walk">
+        徒歩（分）
+       </label>
+       <input id="walk" inputmode="numeric" min="0" type="number"/>
+      </div>
+      <div class="field">
+       <label for="builtYearValue">
+        建築年次
+       </label>
+       <select id="builtYearValue">
+       </select>
+      </div>
+      <div class="field">
+       <label for="age">
+        築年数（自動）
+       </label>
+       <input id="age" readonly=""/>
+      </div>
+      <div class="field">
+       <label for="structure">
+        構造
+       </label>
+       <select id="structure">
+       </select>
+      </div>
+      <div class="field">
+       <label for="layoutChoice">
+        間取り
+       </label>
+       <select id="layoutChoice">
+       </select>
+      </div>
+      <div class="field hidden" id="otherLayoutWrap">
+       <label for="otherLayout">
+        その他の間取り
+       </label>
+       <input id="otherLayout"/>
+      </div>
+     </div>
+    </section>
+    <section class="section-card">
+     <h2>
+      面積
+     </h2>
+     <div class="area-grid" id="spinnerArea">
+      <div class="field">
+       <label for="sqmWhole">
+        整数部分
+       </label>
+       <select id="sqmWhole">
+       </select>
+      </div>
+      <div class="dot">
+       .
+      </div>
+      <div class="field">
+       <label for="sqmDecimal">
+        小数部分
+       </label>
+       <select id="sqmDecimal">
+       </select>
+      </div>
+      <div class="unit">
+       ㎡
+      </div>
+     </div>
+     <div class="field hidden" id="manualArea">
+      <label for="sqmManual">
+       面積を直接入力（㎡）
+      </label>
+      <input id="sqmManual" inputmode="decimal" min="0" step="0.01" type="number"/>
+     </div>
+     <button class="btn mode-btn" id="toggleAreaModeBtn" type="button">
+      手入力に切替
+     </button>
+     <div class="grid" style="margin-top:10px">
+      <div class="field">
+       <label for="sqm">
+        面積（㎡）
+       </label>
+       <input id="sqm" readonly=""/>
+      </div>
+      <div class="field">
+       <label for="tsubo">
+        面積（坪）
+       </label>
+       <input id="tsubo" readonly=""/>
+      </div>
+     </div>
+    </section>
+    <section class="section-card">
+     <h2>
+      家賃履歴
+     </h2>
+     <div id="rentHistoryRows">
+     </div>
+     <button class="btn secondary" id="addHistoryBtn" type="button">
+      ＋ 履歴を追加
+     </button>
+     <p class="small">
+      最新年月の履歴が、一覧の現在家賃として表示されます。
+     </p>
+    </section>
+    <section class="section-card">
+     <h2>
+      メモ
+     </h2>
+     <div class="field">
+      <textarea id="memo"></textarea>
+     </div>
+    </section>
+    <button class="btn save" type="submit">
+     保存
+    </button>
+   </form>
+  </main>
+  <script src="data.js">
+  </script>
+  <script src="storage.js">
+  </script>
+  <script src="form.js">
+  </script>
+ </body>
+</html>
+
