@@ -1,76 +1,31 @@
 (function(){
-  'use strict';
-  const A = window.RENT_APP;
-  const $ = id => document.getElementById(id);
-  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  function options(list, first){ return '<option value="">'+first+'</option>'+list.map(v=>'<option value="'+esc(v)+'">'+esc(v)+'</option>').join(''); }
-  function yearLabel(y){ if(y==='before1964') return '昭和39年以前'; const n=Number(y); if(!n)return ''; if(n<=1988)return '昭和'+(n-1925)+'年'; if(n===1989)return '平成元年'; if(n<=2018)return '平成'+(n-1988)+'年'; if(n===2019)return '令和元年'; return '令和'+(n-2018)+'年'; }
-  function latest(record){
-    if(Array.isArray(record.rentHistory) && record.rentHistory.length){
-      return record.rentHistory.slice().sort((a,b)=>String(b.revisionMonth||'').localeCompare(String(a.revisionMonth||'')))[0];
-    }
-    return {revisionMonth:record.revisionMonth||'', newRent:record.rent||record.newRent||0};
-  }
-  function init(){
-    $('lineChoice').innerHTML = options(Object.keys(A.lines),'選択');
-    $('structure').innerHTML = options(A.structures,'選択');
-    $('layoutChoice').innerHTML = options(A.layouts,'選択');
-    const ys=['<option value="">選択</option>','<option value="before1964">昭和39年以前</option>'];
-    for(let y=1965;y<=new Date().getFullYear();y++) ys.push('<option value="'+y+'">'+yearLabel(y)+'</option>');
-    $('builtYearValue').innerHTML=ys.join('');
-    $('lineChoice').addEventListener('change', updateStations);
-    $('stationChoice').addEventListener('change', toggleOtherStation);
-    $('layoutChoice').addEventListener('change', toggleOtherLayout);
-    $('lineChoice').addEventListener('change', toggleOtherLine);
-    $('sqm').addEventListener('input', updateTsubo);
-    $('rent').addEventListener('input', updatePerTsubo);
-    $('builtYearValue').addEventListener('change', updateAge);
-    $('recordForm').addEventListener('submit', submit);
-    const p=new URLSearchParams(location.search); const recordId=p.get('id');
-    if(recordId) load(recordId);
-    else { updateStations(); updateTsubo(); updateAge(); }
-  }
-  function updateStations(selected){
-    const line=$('lineChoice').value; const stations=(A.lines[line]||[]).concat(['その他']);
-    $('stationChoice').innerHTML=options(stations,'選択');
-    if(typeof selected==='string' && stations.includes(selected)) $('stationChoice').value=selected;
-    toggleOtherLine(); toggleOtherStation();
-  }
-  function toggleOtherLine(){ $('otherLineWrap').hidden=$('lineChoice').value!=='その他'; }
-  function toggleOtherStation(){ $('otherStationWrap').hidden=$('stationChoice').value!=='その他'; }
-  function toggleOtherLayout(){ $('otherLayoutWrap').hidden=$('layoutChoice').value!=='その他'; }
-  function updateTsubo(){ const sqm=Number($('sqm').value||0); $('tsubo').value=sqm?(sqm/3.305785).toFixed(2):''; updatePerTsubo(); }
-  function updatePerTsubo(){ const t=Number($('tsubo').value||0),r=Number($('rent').value||0); $('rentPerTsubo').value=t&&r?Math.round(r/t).toLocaleString('ja-JP'):''; }
-  function updateAge(){ const y=$('builtYearValue').value, now=new Date().getFullYear(); $('age').value=y==='before1964'?'築'+(now-1964)+'年以上':y?'築'+(now-Number(y))+'年':''; }
-  function load(recordId){
-    const r=window.RentStore.get(recordId); if(!r){ alert('データが見つかりません'); location.href='index.html'; return; }
-    $('recordId').value=r.id||''; $('owner').value=r.owner||''; $('building').value=r.building||''; $('walk').value=r.walk||'';
-    const lc=A.lines[r.lineChoice]?r.lineChoice:(A.lines[r.line]?r.line:'その他'); $('lineChoice').value=lc; updateStations(r.stationChoice||r.station||'');
-    if(lc==='その他') $('otherLine').value=r.line||'';
-    if($('stationChoice').value==='その他' || !(A.lines[lc]||[]).includes(r.station||'')){ $('stationChoice').value='その他'; $('otherStation').value=r.station||''; }
-    $('builtYearValue').value=r.builtYearValue||''; updateAge(); $('structure').value=r.structure||'';
-    const layout=A.layouts.includes(r.layoutChoice)?r.layoutChoice:(A.layouts.includes(r.layout)?r.layout:'その他'); $('layoutChoice').value=layout; toggleOtherLayout(); if(layout==='その他')$('otherLayout').value=r.layout||'';
-    $('sqm').value=r.sqm||''; updateTsubo(); const h=latest(r); $('revisionMonth').value=h.revisionMonth||''; $('rent').value=h.newRent||''; updatePerTsubo(); $('memo').value=r.memo||'';
-  }
-  function submit(e){
-    e.preventDefault();
-    const old=$('recordId').value?window.RentStore.get($('recordId').value):null;
-    const lineChoice=$('lineChoice').value, stationChoice=$('stationChoice').value, layoutChoice=$('layoutChoice').value;
-    const id=$('recordId').value||window.RentStore.id(); const rent=Number($('rent').value||0); const month=$('revisionMonth').value;
-    const history=old&&Array.isArray(old.rentHistory)?old.rentHistory.slice():[];
-    if(rent){ const hit=history.findIndex(h=>h.revisionMonth===month); const item={id:'h-'+Date.now(),revisionMonth:month,oldRent:hit>=0?Number(history[hit].oldRent||0):0,newRent:rent}; if(hit>=0)history[hit]=item; else history.push(item); }
-    const record=Object.assign({},old||{}, {
-      id, owner:$('owner').value.trim(), building:$('building').value.trim(), walk:Number($('walk').value||0),
-      lineChoice, line:lineChoice==='その他'?$('otherLine').value.trim():lineChoice,
-      stationChoice, station:stationChoice==='その他'?$('otherStation').value.trim():stationChoice,
-      builtYearValue:$('builtYearValue').value, builtYearLabel:yearLabel($('builtYearValue').value),
-      ageExact:$('builtYearValue').value==='before1964'?new Date().getFullYear()-1964:($('builtYearValue').value?new Date().getFullYear()-Number($('builtYearValue').value):0),
-      ageAtLeast:$('builtYearValue').value==='before1964', structure:$('structure').value,
-      layoutChoice, layout:layoutChoice==='その他'?$('otherLayout').value.trim():layoutChoice,
-      sqm:Number($('sqm').value||0), tsubo:Number($('tsubo').value||0), rentHistory:history,
-      revisionMonth:month, rent, memo:$('memo').value.trim(), updatedAt:new Date().toISOString()
-    });
-    window.RentStore.save(record); location.href='index.html?saved=1';
-  }
-  document.addEventListener('DOMContentLoaded',init);
+'use strict';
+const A=window.RENT_APP,$=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let manualMode=false;
+function options(list,first){return '<option value="">'+first+'</option>'+list.map(v=>'<option value="'+esc(v)+'">'+esc(v)+'</option>').join('');}
+function yearLabel(y){if(y==='before1964')return '昭和39年以前';const n=Number(y);if(!n)return '';if(n<=1988)return '昭和'+(n-1925)+'年';if(n===1989)return '平成元年';if(n<=2018)return '平成'+(n-1988)+'年';if(n===2019)return '令和元年';return '令和'+(n-2018)+'年';}
+function latest(r){if(Array.isArray(r.rentHistory)&&r.rentHistory.length)return r.rentHistory.slice().sort((a,b)=>String(b.revisionMonth||'').localeCompare(String(a.revisionMonth||'')))[0];return{revisionMonth:r.revisionMonth||'',newRent:r.rent||r.newRent||0};}
+function init(){
+ $('lineChoice').innerHTML=options(Object.keys(A.lines),'選択');$('structure').innerHTML=options(A.structures,'選択');$('layoutChoice').innerHTML=options(A.layouts,'選択');
+ const ys=['<option value="">選択</option>','<option value="before1964">昭和39年以前</option>'];for(let y=1965;y<=new Date().getFullYear();y++)ys.push('<option value="'+y+'">'+yearLabel(y)+'</option>');$('builtYearValue').innerHTML=ys.join('');
+ $('sqmWhole').innerHTML=Array.from({length:201},(_,i)=>'<option value="'+i+'">'+i+'</option>').join('');$('sqmDecimal').innerHTML=Array.from({length:100},(_,i)=>'<option value="'+i+'">'+String(i).padStart(2,'0')+'</option>').join('');
+ $('lineChoice').addEventListener('change',()=>updateStations());$('stationChoice').addEventListener('change',toggleOtherStation);$('layoutChoice').addEventListener('change',toggleOtherLayout);$('builtYearValue').addEventListener('change',updateAge);$('sqmWhole').addEventListener('change',updateAreaFromSpinner);$('sqmDecimal').addEventListener('change',updateAreaFromSpinner);$('sqmManual').addEventListener('input',updateAreaFromManual);$('toggleAreaModeBtn').addEventListener('click',toggleAreaMode);$('addHistoryBtn').addEventListener('click',()=>addHistoryRow({}));$('recordForm').addEventListener('submit',submit);
+ const id=new URLSearchParams(location.search).get('id');if(id)load(id);else{updateStations();updateAge();$('sqmWhole').value='50';$('sqmDecimal').value='50';updateAreaFromSpinner();addHistoryRow({revisionMonth:new Date().toISOString().slice(0,7)});}
+}
+function updateStations(selected){const line=$('lineChoice').value,stations=(A.lines[line]||[]).concat(line?['その他']:[]);$('stationChoice').innerHTML=options(stations,'選択');if(typeof selected==='string'&&stations.includes(selected))$('stationChoice').value=selected;toggleOtherLine();toggleOtherStation();}
+function toggleOtherLine(){$('otherLineWrap').classList.toggle('hidden',$('lineChoice').value!=='その他');}
+function toggleOtherStation(){$('otherStationWrap').classList.toggle('hidden',$('stationChoice').value!=='その他');}
+function toggleOtherLayout(){$('otherLayoutWrap').classList.toggle('hidden',$('layoutChoice').value!=='その他');}
+function updateAge(){const y=$('builtYearValue').value,now=new Date().getFullYear();$('age').value=y==='before1964'?'築'+(now-1964)+'年以上':y?'築'+(now-Number(y))+'年':'';}
+function setArea(v){const n=Number(v||0);$('sqm').value=n?n.toFixed(2):'';$('tsubo').value=n?(n/3.305785).toFixed(2):'';updateHistoryCalculations();}
+function updateAreaFromSpinner(){setArea(Number($('sqmWhole').value||0)+Number($('sqmDecimal').value||0)/100);}
+function updateAreaFromManual(){setArea($('sqmManual').value);}
+function toggleAreaMode(){manualMode=!manualMode;$('spinnerArea').classList.toggle('hidden',manualMode);$('manualArea').classList.toggle('hidden',!manualMode);$('toggleAreaModeBtn').textContent=manualMode?'コロコロ入力に戻す':'手入力に切替';if(manualMode)$('sqmManual').value=$('sqm').value;}
+function addHistoryRow(h){const row=document.createElement('div');row.className='history-row';row.innerHTML='<div class="history-head"><span>家賃改定</span><button type="button" class="btn danger delete-history">削除</button></div><div class="history-grid"><div class="field revision-field"><label>改定年月</label><input class="h-month" type="month" value="'+esc(h.revisionMonth||'')+'"></div><div class="field"><label>改定後家賃（円）</label><input class="h-rent" type="number" min="0" inputmode="numeric" value="'+esc(h.newRent||'')+'"></div><div class="field"><label>坪単価</label><input class="h-unit" readonly></div></div>';
+ row.querySelector('.delete-history').addEventListener('click',()=>{row.remove();if(!$('rentHistoryRows').children.length)addHistoryRow({});});row.querySelector('.h-rent').addEventListener('input',updateHistoryCalculations);$('rentHistoryRows').appendChild(row);updateHistoryCalculations();}
+function updateHistoryCalculations(){const t=Number($('tsubo').value||0);document.querySelectorAll('.history-row').forEach(row=>{const r=Number(row.querySelector('.h-rent').value||0);row.querySelector('.h-unit').value=t&&r?Math.round(r/t).toLocaleString('ja-JP'):'';});}
+function load(id){const r=RentStore.get(id);if(!r){alert('データが見つかりません');location.href='index.html';return;}$('recordId').value=r.id||'';$('owner').value=r.owner||'';$('building').value=r.building||'';$('walk').value=r.walk||'';const lc=A.lines[r.lineChoice]?r.lineChoice:(A.lines[r.line]?r.line:'その他');$('lineChoice').value=lc;updateStations(r.stationChoice||r.station||'');if(lc==='その他')$('otherLine').value=r.line||'';if(r.station&&!((A.lines[lc]||[]).includes(r.station))){$('stationChoice').value='その他';$('otherStation').value=r.station;toggleOtherStation();}$('builtYearValue').value=r.builtYearValue||'';updateAge();$('structure').value=r.structure||'';const lay=A.layouts.includes(r.layoutChoice)?r.layoutChoice:(A.layouts.includes(r.layout)?r.layout:'その他');$('layoutChoice').value=lay;toggleOtherLayout();if(lay==='その他')$('otherLayout').value=r.layout||'';const sqm=Number(r.sqm||0);$('sqmWhole').value=String(Math.floor(sqm));$('sqmDecimal').value=String(Math.round((sqm-Math.floor(sqm))*100));setArea(sqm);$('memo').value=r.memo||'';const hs=Array.isArray(r.rentHistory)&&r.rentHistory.length?r.rentHistory:[latest(r)];$('rentHistoryRows').innerHTML='';hs.forEach(addHistoryRow);}
+function submit(e){e.preventDefault();const old=$('recordId').value?RentStore.get($('recordId').value):null;const lineChoice=$('lineChoice').value,stationChoice=$('stationChoice').value,layoutChoice=$('layoutChoice').value;const history=[...document.querySelectorAll('.history-row')].map((row,i)=>({id:'h-'+Date.now()+'-'+i,revisionMonth:row.querySelector('.h-month').value,newRent:Number(row.querySelector('.h-rent').value||0)})).filter(h=>h.revisionMonth||h.newRent);const h=history.slice().sort((a,b)=>String(b.revisionMonth).localeCompare(String(a.revisionMonth)))[0]||{};const y=$('builtYearValue').value,now=new Date().getFullYear();const record=Object.assign({},old||{},{id:$('recordId').value||RentStore.id(),owner:$('owner').value.trim(),building:$('building').value.trim(),walk:Number($('walk').value||0),lineChoice,line:lineChoice==='その他'?$('otherLine').value.trim():lineChoice,stationChoice,station:stationChoice==='その他'?$('otherStation').value.trim():stationChoice,builtYearValue:y,builtYearLabel:yearLabel(y),ageExact:y==='before1964'?now-1964:(y?now-Number(y):0),ageAtLeast:y==='before1964',structure:$('structure').value,layoutChoice,layout:layoutChoice==='その他'?$('otherLayout').value.trim():layoutChoice,sqm:Number($('sqm').value||0),tsubo:Number($('tsubo').value||0),rentHistory:history,revisionMonth:h.revisionMonth||'',rent:h.newRent||0,memo:$('memo').value.trim(),updatedAt:new Date().toISOString()});RentStore.save(record);location.href='index.html?saved=1';}
+document.addEventListener('DOMContentLoaded',init);
 })();
