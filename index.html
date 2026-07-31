@@ -1,43 +1,40 @@
 <!DOCTYPE html>
 <html lang="ja">
- <head>
-  <meta charset="utf-8"/>
-  <meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
-  <meta content="#1769e0" name="theme-color"/>
-  <link href="manifest.json" rel="manifest"/>
-  <link href="style.css" rel="stylesheet"/>
-  <title>
-   賃料履歴
-  </title>
- </head>
- <body>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#294f75">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+  <title>賃料履歴</title>
+</head>
+<body>
   <header class="topbar">
-   <h1>
-    賃料履歴
-   </h1>
-   <span class="version" id="version">v4.1.1</span>
+    <h1>賃料履歴</h1>
+    <span class="version" id="version">v4.1.2</span>
   </header>
   <main class="wrap">
-   <input class="search" id="search" placeholder="顧問先名・マンション名・駅などで検索" type="search"/>
-   <div class="list-head">
-    <span>
-     登録一覧
-    </span>
-    <span id="count">
-    </span>
-   </div>
-   <section id="list">
-   </section>
+    <section class="search-card">
+      <button type="button" id="searchToggle" class="search-toggle">検索条件を開く</button>
+      <div id="searchPanel" class="search-panel hidden">
+        <div class="search-grid">
+          <div class="field full"><label for="q">キーワード</label><input id="q" type="search" placeholder="顧問先名・マンション名・駅・メモ"></div>
+          <div class="field"><label for="fLine">路線</label><select id="fLine"></select></div>
+          <div class="field"><label for="fStation">最寄駅</label><select id="fStation"></select></div>
+          <div class="field"><label for="fStructure">構造</label><select id="fStructure"></select></div>
+          <div class="field"><label for="fLayout">間取り</label><select id="fLayout"></select></div>
+          <div class="field"><label for="fWalkMax">徒歩（分以内）</label><input id="fWalkMax" type="number" min="0" inputmode="numeric"></div>
+          <div class="field"><label for="fRentMin">家賃（円以上）</label><input id="fRentMin" type="number" min="0" inputmode="numeric"></div>
+          <div class="field"><label for="fRentMax">家賃（円以下）</label><input id="fRentMax" type="number" min="0" inputmode="numeric"></div>
+          <div class="field"><label for="sortBy">並び順</label><select id="sortBy"><option value="new">更新が新しい順</option><option value="rentDesc">家賃が高い順</option><option value="rentAsc">家賃が低い順</option><option value="walkAsc">駅徒歩が近い順</option><option value="ownerAsc">顧問先名順</option></select></div>
+        </div>
+        <button type="button" id="clearFilters" class="btn secondary clear-filter">条件をクリア</button>
+      </div>
+    </section>
+    <div class="list-head"><span>登録一覧</span><span id="count"></span></div>
+    <section id="list"></section>
   </main>
-  <a aria-label="新規登録" class="fab" href="new.html">
-   ＋
-  </a>
-  <script src="data.js">
-  </script>
-  <script src="storage.js">
-  </script>
-  <script src="index.js">
-  </script>
- </body>
+  <a aria-label="新規登録" class="fab" href="new.html">＋</a>
+  <script src="data.js"></script><script src="storage.js"></script><script src="index.js"></script>
+</body>
 </html>
-
