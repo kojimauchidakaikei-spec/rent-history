@@ -37,4 +37,7 @@ dialog{width:min(93vw,590px);border:0;border-radius:18px;padding:0;box-shadow:0 
 .dialog-head{display:flex;justify-content:space-between;align-items:center;background:var(--navy);color:#fff;padding:14px 16px}.dialog-head h3{margin:0;font-size:17px}.close{border:0;background:transparent;color:#fff;font-size:26px}
 .dialog-body{padding:14px;max-height:72vh;overflow:auto}.dialog-actions{padding:12px 14px;border-top:1px solid var(--line);justify-content:flex-end}.update{border-left:4px solid var(--navy2);padding:8px 10px;background:#f3f7fa;border-radius:8px;margin-bottom:9px}
 hr{border:0;border-top:1px solid var(--line);margin:16px 0}
-@media(max-width:700px){.search-grid{grid-template-columns:1fr 1fr}.checks{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){.search-grid{grid-template-columns:1fr 1fr}.checks{grid-template-columns:1fr 1fr}}.overlay{position:fixed;inset:0;z-index:100;background:rgba(10,20,30,.52);padding:5vh 4vw;overflow:auto}
+.overlay.hidden{display:none!important}
+.overlay-card{width:min(92vw,590px);margin:0 auto;background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 20px 65px rgba(0,0,0,.32)}
+body.overlay-open{overflow:hidden}

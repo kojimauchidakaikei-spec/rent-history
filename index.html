@@ -12,7 +12,7 @@
 <header>
   <div class="header-row">
     <h1>賃料履歴</h1>
-    <button id="versionBtn" class="version">v3.0.0</button>
+    <button id="versionBtn" class="version">v3.1.0</button>
   </div>
 </header>
 
@@ -160,20 +160,22 @@
   </section>
 </main>
 
-<button id="fab" class="fab" aria-label="新規登録">＋</button>
+<button id="fab" class="fab" aria-label="新規登録" type="button" onclick="RentApp.openNew()">＋</button>
 
-<dialog id="detailDialog">
-  <div class="dialog-head">
-    <h3>物件詳細</h3>
-    <button class="close" data-close="detailDialog">×</button>
+<div id="detailOverlay" class="overlay hidden" aria-hidden="true">
+  <div class="overlay-card">
+    <div class="dialog-head">
+      <h3>物件詳細</h3>
+      <button class="close" type="button" onclick="RentApp.closeDetail()">×</button>
+    </div>
+    <div id="detailBody" class="dialog-body"></div>
+    <div class="dialog-actions">
+      <button class="secondary" type="button" onclick="RentApp.cloneSelected()">別パターン追加</button>
+      <button class="danger" type="button" onclick="RentApp.deleteSelected()">削除</button>
+      <button class="primary" type="button" onclick="RentApp.editSelected()">編集</button>
+    </div>
   </div>
-  <div id="detailBody" class="dialog-body"></div>
-  <div class="dialog-actions">
-    <button id="cloneBtn" class="secondary">別パターン追加</button>
-    <button id="deleteBtn" class="danger">削除</button>
-    <button id="editBtn" class="primary">編集</button>
-  </div>
-</dialog>
+</div>
 
 <dialog id="versionDialog">
   <div class="dialog-head">
@@ -181,7 +183,7 @@
     <button class="close" data-close="versionDialog">×</button>
   </div>
   <div class="dialog-body">
-    <div class="update"><strong>v3.0.0</strong>アプリ全体を複数ファイル構成で再設計。新規登録・編集・別パターン追加の処理を作り直しました。</div>
+    <div class="update"><strong>v3.1.0</strong>アプリ全体を複数ファイル構成で再設計。新規登録・編集・別パターン追加の処理を作り直しました。</div>
     <div class="update"><strong>v2.1.0</strong>部屋パターン名、別パターン追加、面積入力の整理を追加。</div>
     <div class="update"><strong>v2.0.0</strong>路線・駅選択、建築年次、家賃履歴、写真、賃貸条件を追加。</div>
     <div class="update"><strong>v1.0.0</strong>賃料、値上げ額、坪単価、メモ、検索、バックアップを追加。</div>

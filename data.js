@@ -1,5 +1,5 @@
 window.APP_DATA = {
-  VERSION: "3.0.0",
+  VERSION: "3.1.0",
   STORAGE_KEY: "rentHistoryRecords_v2",
   FEATURES: ["オートロック","エレベーター","バストイレ別","独立洗面台","宅配ボックス","ペット可","楽器可","駐車場","駐輪場"],
   STRUCTURES: ["木造","軽量鉄骨造","鉄骨造","RC造","SRC造","その他"],

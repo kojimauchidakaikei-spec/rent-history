@@ -123,12 +123,13 @@
   }
 
   function resetForm() {
-    $("propertyForm").reset();
-    $("recordId").value = "";
+    const textIds = ["recordId","owner","building","patternName","walk","otherLine","otherStation","otherLayout","ageDisplay","sqmManual","memo"];
+    textIds.forEach(id => { if ($(id)) $(id).value = ""; });
+    ["line","station","builtYear","structure","layout"].forEach(id => { if ($(id)) $(id).value = ""; });
+    document.querySelectorAll('input[name="feature"]').forEach(x => x.checked = false);
     $("otherLineWrap").classList.add("hidden");
     $("otherStationWrap").classList.add("hidden");
     $("otherLayoutWrap").classList.add("hidden");
-    $("ageDisplay").value = "";
     areaMode = "spinner";
     $("spinnerArea").classList.remove("hidden");
     $("manualArea").classList.add("hidden");
@@ -141,8 +142,8 @@
     $("photoPreview").src = "";
     $("photoPreview").style.display = "none";
     $("photoInput").value = "";
-    syncArea();
     setStations($("line"), $("station"));
+    syncArea();
   }
 
   function getHistoryFromForm() {
@@ -361,13 +362,14 @@
       ${(record.features || []).length ? `<h3>賃貸条件</h3>${record.features.map(f=>`<span class="badge">${esc(f)}</span>`).join("")}` : ""}
       <h3>家賃履歴</h3>${histories || '<div class="empty">履歴なし</div>'}
       ${record.memo ? `<h3>メモ</h3><div class="memo">${esc(record.memo)}</div>` : ""}`;
-    $("detailDialog").showModal();
+    $("detailOverlay").classList.remove("hidden");
+    $("detailOverlay").setAttribute("aria-hidden","false");
+    document.body.classList.add("overlay-open");
   }
 
   function bindEvents() {
     document.querySelectorAll(".tab").forEach(btn => btn.addEventListener("click", () => switchPanel(btn.dataset.panel)));
 
-    $("fab").addEventListener("click", () => { resetForm(); switchPanel("formPanel"); });
     $("versionBtn").addEventListener("click", () => $("versionDialog").showModal());
     $("openDataBtn").addEventListener("click", () => $("dataDialog").showModal());
     document.querySelectorAll("[data-close]").forEach(btn => btn.addEventListener("click", () => $(btn.dataset.close).close()));
@@ -417,32 +419,6 @@
     document.addEventListener("click", event => {
       const card = event.target.closest(".item[data-id]");
       if (card) openDetail(card.dataset.id);
-    });
-
-    $("editBtn").addEventListener("click", () => {
-      const record = records.find(r => r.id === selectedId);
-      if (!record) return;
-      $("detailDialog").close();
-      loadRecordIntoForm(record, false);
-      switchPanel("formPanel");
-    });
-
-    $("cloneBtn").addEventListener("click", () => {
-      const record = records.find(r => r.id === selectedId);
-      if (!record) return;
-      $("detailDialog").close();
-      loadRecordIntoForm(record, true);
-      switchPanel("formPanel");
-      setTimeout(() => $("patternName").focus(), 100);
-    });
-
-    $("deleteBtn").addEventListener("click", () => {
-      if (!confirm("この物件を削除しますか？")) return;
-      records = records.filter(r => r.id !== selectedId);
-      saveRecords();
-      renderList();
-      renderSearch();
-      $("detailDialog").close();
     });
 
     $("fLine").addEventListener("change", () => { setStations($("fLine"), $("fStation"), "", "すべて"); renderSearch(); });
@@ -524,6 +500,46 @@
       $("dataDialog").close();
     });
   }
+
+  function closeDetail() {
+    $("detailOverlay").classList.add("hidden");
+    $("detailOverlay").setAttribute("aria-hidden","true");
+    document.body.classList.remove("overlay-open");
+  }
+
+  function openNew() {
+    resetForm();
+    closeDetail();
+    switchPanel("formPanel");
+  }
+
+  function editSelected() {
+    const record = records.find(r => r.id === selectedId);
+    if (!record) return alert("編集する物件が見つかりません");
+    closeDetail();
+    loadRecordIntoForm(record, false);
+    switchPanel("formPanel");
+  }
+
+  function cloneSelected() {
+    const record = records.find(r => r.id === selectedId);
+    if (!record) return alert("元の物件が見つかりません");
+    closeDetail();
+    loadRecordIntoForm(record, true);
+    switchPanel("formPanel");
+  }
+
+  function deleteSelected() {
+    if (!selectedId) return;
+    if (!confirm("この物件を削除しますか？")) return;
+    records = records.filter(r => r.id !== selectedId);
+    saveRecords();
+    renderList();
+    renderSearch();
+    closeDetail();
+  }
+
+  window.RentApp = { openNew, editSelected, cloneSelected, deleteSelected, closeDetail };
 
   function init() {
     loadRecords();
